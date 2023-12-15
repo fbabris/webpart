@@ -3,17 +3,21 @@ import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
 import {
   type IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,
+
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
 
 import * as strings from 'HelloWorldWebPartStrings';
 import HelloWorld from './components/HelloWorld';
-import { IHelloWorldProps } from './components/IHelloWorldProps';
+import { IHelloWorldProps } from './components/interfaces/interfaces';
 
 export interface IHelloWorldWebPartProps {
-  description: string;
+  Title: string;
+  Description: string;
+  DueDate: Date;
+  ExecutionDate: Date;
 }
 
 export default class HelloWorldWebPart extends BaseClientSideWebPart<IHelloWorldWebPartProps> {
@@ -25,11 +29,12 @@ export default class HelloWorldWebPart extends BaseClientSideWebPart<IHelloWorld
     const element: React.ReactElement<IHelloWorldProps> = React.createElement(
       HelloWorld,
       {
-        description: this.properties.description,
+        description: this.properties.Description,
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
-        userDisplayName: this.context.pageContext.user.displayName
+        userDisplayName: this.context.pageContext.user.displayName,
+        context: this.context
       }
     );
 
