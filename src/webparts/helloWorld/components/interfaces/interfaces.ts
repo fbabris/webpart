@@ -1,20 +1,20 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 
 export interface IMemberForm {
-    title: string;
-    description: string;
-    requestType: string; 
-    requestArea: string;
-    dueDate: string;
-    tags: string;
+    Title: string;
+    Description: string;
+    // requestType: string; 
+    RequestArea: string;
+    DueDate: string | undefined;
+    // tags: string;
 };
 
 export interface IRequestList {
     ID: number;
     Title: string;
     Description: string;
-    DueDate: Date | undefined;
-    ExecutionDate: Date | undefined;
+    DueDate: string | undefined;
+    ExecutionDate: string | undefined;
     RequestType: string;
     RequestArea: string;
     AsignedManager: string;
@@ -30,4 +30,12 @@ export interface IHelloWorldProps {
     hasTeamsContext: boolean;
     userDisplayName: string;
     context: WebPartContext;
+  }
+
+  export interface ModalProps {
+    mode: 'create' | 'update';
+    initialData?: IMemberForm | null;
+    onSubmit: (formData: IMemberForm) => void;
+    isModalOpen: boolean;
+    hideModal: () => void;
   }
