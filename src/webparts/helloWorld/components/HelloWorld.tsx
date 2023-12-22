@@ -3,7 +3,7 @@ import * as React from 'react';
 import type { IHelloWorldProps } from './interfaces/interfaces';
 // import { escape } from '@microsoft/sp-lodash-subset';
 // import MemberForm from './MemberForm';
-import ListCon from './ListCon';
+import RequestList from './RequestList';
 // import ModalComponent from './ModalComponent';
 // import { useBoolean } from '@fluentui/react-hooks';
 
@@ -18,7 +18,7 @@ const HelloWorld: React.FC<IHelloWorldProps> = (props: IHelloWorldProps): JSX.El
   return (
     <section>
       <div>
-        <ListCon ID={0} Title={''} context={props.context} Description={''} DueDate={undefined} ExecutionDate={undefined} RequestType={''} RequestArea={''} AsignedManager={''} Tags={''} Status={''} />
+        <RequestList ID={0} Title={''} context={props.context} Description={''} DueDate={undefined} ExecutionDate={undefined} RequestType={''} RequestArea={''} AsignedManagerId={0} Tags={''} Status={''} />
 {/*       
 
     <ModalComponent

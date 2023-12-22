@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Modal, IconButton } from '@fluentui/react/lib';
-// import { useBoolean } from '@fluentui/react-hooks';
 import MemberForm from './MemberForm';
-import { createFormData, updateFormData } from './services';
+import { createFormData, updateFormData } from './CRUD';
 import { ModalProps } from './interfaces/interfaces';
 import { useBoolean } from '@fluentui/react-hooks';
 
@@ -44,7 +43,7 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
         containerClassName="ms-modalExample-container"
       >
         <div className="ms-modalExample-header">
-          <span id="modalHeader">{props.mode === 'create' ? 'Create' : 'Update'} Modal</span>
+          <span id="modalHeader">{props.mode === 'create' ? 'Create' : 'Update'} Request </span>
           <IconButton
             iconProps={{ iconName: 'Cancel' }}
             ariaLabel="Close popup modal"

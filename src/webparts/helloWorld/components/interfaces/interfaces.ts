@@ -17,8 +17,8 @@ export interface IRequestList {
     ExecutionDate: string | undefined;
     RequestType: string;
     RequestArea: string;
-    AsignedManager: string;
-    Tags: string;
+    AsignedManagerId: number;
+    Tags: any;
     Status: string;
     context: WebPartContext;
 }
