@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { deleteFormData, readAllFormData, updateFormData} from './CRUD';
+import { deleteFormData, readAllFormData, updateFormData} from './helpers/CRUD';
 import { IRequestList} from './interfaces/interfaces';
 import ModalComponent from './ModalComponent';
 import {
@@ -10,34 +10,25 @@ import {
   Table,
   TableHeader,
   TableHeaderCell,
-  TableCellLayout,
   Button,
 } from "@fluentui/react-components";
 import { DeleteIcon, EditIcon } from '@fluentui/react-icons-mdl2';
-import { fetchTaxonomyData, formattedDate, getSiteUsers } from './services';
+import { fetchRequestTypeData, fetchTaxonomyData, formattedDate, getSiteUsers } from './helpers/services';
+import 'office-ui-fabric-core/dist/css/fabric.min.css';
+import { PrimaryButton } from '@fluentui/react';
 
 const RequestList: React.FC<IRequestList> = (props) => {
   const [requestItems, setRequestItems] = useState<IRequestList[]>([]);
   const [selectedItem, setSelectedItem] = useState<IRequestList | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [usersArray, setUsersArray] = useState<{ [key: number]: string }> ({});
+  const [requestTypes, setRequestTypes] = React.useState<{ Title: string; DisplayOrder: string; }[]>([]);
 
-  const columns = [
-    { key: 'Title', name: 'Title', fieldName: 'Title', minWidth: 100, maxWidth: 200, isResizable: true },
-    { key: 'Description', name: 'Description', fieldName: 'Description', minWidth: 100, maxWidth: 200, isResizable: true },
-    { key: 'DueDate', name: 'Due Date', fieldName: 'DueDate', minWidth: 100, maxWidth: 200, isResizable: true },
-    { key: 'ExecutionDate', name: 'Execution Date', fieldName: 'ExecutionDate', minWidth: 100, maxWidth: 200, isResizable: true },
-    { key: 'RequestType', name: 'Request Type', fieldName: 'RequestType', minWidth: 100, maxWidth: 200, isResizable: true },
-    { key: 'RequestArea', name: 'Request Area', fieldName: 'RequestArea', minWidth: 100, maxWidth: 300, isResizable: true },
-    { key: 'AsignedManager', name: 'Asigned Manager', fieldName: 'AsignedManager', minWidth: 100, maxWidth: 200, isResizable: true },
-    { key: 'Tags', name: 'Tags', fieldName: 'Tags', minWidth: 100, maxWidth: 200, isResizable: true },
-    { key: 'Status', name: 'Status', fieldName: 'Status', minWidth: 100, maxWidth: 200, isResizable: true },
-  ];
-
-  useEffect(() => {
+    useEffect(() => {
     const fetchDataAndUsers = async () => {
       await fetchData();
       await storeSiteUsers();
+      requestTypesArray();
       storeTaxonomyData();
     };
   
@@ -49,7 +40,15 @@ const RequestList: React.FC<IRequestList> = (props) => {
     setModalVisible(true);
   };
 
-  const handleDelete = async (item: IRequestList) => {
+  const handleDelete = (item: IRequestList) => {
+    const confirmed = window.confirm(`Are you sure you want to delete item "${item.Title}"?`);
+  
+    if (confirmed) {
+      deleteItem(item);
+    }
+  };
+  
+  const deleteItem = async (item: IRequestList) => {
     try {
       await deleteFormData(item.ID);
       fetchData();
@@ -78,10 +77,25 @@ const handleOpenCreateModal = () => {
   setModalVisible(true);
 };
 
+const requestTypesArray = async () => {
+  try {
+    const requestTypesData = await fetchRequestTypeData(props.context);
+    setRequestTypes(requestTypesData.map((requestTypeData) => ({
+      Title: requestTypeData.Title, 
+      DisplayOrder: requestTypeData.DisplayOrder,
+    })));
+    console.log('request types', requestTypesData);
+    return requestTypesData;
+  } catch (error) {
+    console.error('Error fetching Request Types data: ', error);
+  }
+};
+
 const fetchData = async () => {
   try {
     const items = await readAllFormData(props.context);
     setRequestItems(items);
+    console.log('fetch items', items);
     return requestItems;
   } catch (error) {
     console.error('Error fetching list data', error);
@@ -113,15 +127,39 @@ const storeSiteUsers = async () => {
   };
 }
 
+const gridClasses = {
+  regular: 'ms-Grid-col ms-sm4 ms-md2 ms-lg2',
+  large2: 'ms-Grid-col hiddenMdDown ms-lg2',
+  large1: 'ms-Grid-col hiddenMdDown ms-lg1',
+  small2: 'ms-Grid-col ms-sm2 ms-lg1', 
+  small1: 'ms-Grid-col ms-sm1',
+  mid3: 'ms-Grid-col hiddenSm ms-md3 ms-lg2',
+  hid: 'ms-Grid-col ms-sm12 hiddenXxlDown'
+}
+
+const columns = [
+  { key: 'Title', fieldName: 'Title', className:gridClasses.regular},
+  // { key: 'Description', fieldName: 'Description', className:gridClasses.hid},
+  { key: 'DueDate', fieldName: 'DueDate', className:gridClasses.mid3},
+  // { key: 'ExecutionDate', fieldName: 'ExecutionDate', className:gridClasses.large1},
+  // { key: 'RequestType', fieldName: 'RequestType', className:gridClasses.hid},
+  { key: 'RequestArea', fieldName: 'RequestArea', className:gridClasses.large2},
+  { key: 'AsignedManager', fieldName: 'Asigned Manager', className:gridClasses.regular},
+  { key: 'Tags', fieldName: 'Tags', className:gridClasses.large2},
+  { key: 'Status', fieldName: 'Status', className:gridClasses.small2},
+  { key: 'EditDelete', fieldName: '', className:gridClasses.small1},
+
+];
+
   return (
-    <div>
+    <div className="ms-Grid">
       <h2>Request List:</h2>
         <Table sortable aria-label="Table with sort" >
 
         <TableHeader>
-          <TableRow>
+          <TableRow className="ms-Grid-row">
             {columns.map((column) => (
-              <TableHeaderCell key={column.key}>
+              <TableHeaderCell key={column.key} className={column.className}>
                 {column.fieldName}
               </TableHeaderCell>
             ))}
@@ -130,44 +168,40 @@ const storeSiteUsers = async () => {
 
         <TableBody>
           {requestItems.map((item) => (
-            <TableRow key={item.ID}>
-              <TableCell>
-                <TableCellLayout main="span">
-                  {item.Title}
-                </TableCellLayout>
-              </TableCell>
-              <TableCell>
-                <TableCellLayout main="span">
-                  {item.Description}
-                </TableCellLayout>
-              </TableCell>
-              <TableCell>{formattedDate(item.DueDate)}</TableCell>
-              <TableCell>{formattedDate(item.ExecutionDate)}</TableCell>
-              <TableCell>{item.RequestType}</TableCell>
-              <TableCell>{item.RequestArea}</TableCell>
-              <TableCell>{usersArray[item.AsignedManagerId]}</TableCell>
-              <TableCell>
+            <TableRow className="ms-Grid-row" key={item.ID}>
+              <TableCell className={gridClasses.regular} >{item.Title}</TableCell>
+              {/* <TableCell className={gridClasses.hid} >{item.Description}</TableCell> */}
+              <TableCell className={gridClasses.mid3} >{formattedDate(item.DueDate)}</TableCell>
+              {/* <TableCell className={gridClasses.large1}>{formattedDate(item.ExecutionDate)}</TableCell> */}
+              {/* <TableCell className={gridClasses.hid}>{item.RequestType}</TableCell> */}
+              <TableCell className={gridClasses.large2}>{item.RequestArea}</TableCell>
+              <TableCell className={gridClasses.regular}>{usersArray[item.AsignedManagerId]}</TableCell>
+              <TableCell className={gridClasses.large2}>
                 {item.Tags.map((tag:any, index:number) => (
-                <span key={index}>{tag.Label}</span>
+                <span key={index}>{tag.Label} </span>
               ))}
               </TableCell>
-              <TableCell>{item.Status}</TableCell>
-              <TableCell><Button icon={<EditIcon/>} onClick={() => handleUpdate(item)}></Button></TableCell>
-              <TableCell><Button icon={<DeleteIcon/>} onClick={() => handleDelete(item)}></Button></TableCell>            
+              <TableCell className={gridClasses.small2}>{item.Status}</TableCell>
+              <div className={gridClasses.small1}>
+                <TableCell ><Button icon={<EditIcon/>} onClick={() => handleUpdate(item)}></Button></TableCell>
+                <TableCell ><Button icon={<DeleteIcon/>} onClick={() => handleDelete(item)}></Button></TableCell> 
+              </div>           
             </TableRow>
           ))}
         </TableBody>
       </Table>
-
-      <button onClick={handleOpenCreateModal}>Create a New Request</button>
-
+      <div className="ms-Grid-row center">          
+        <PrimaryButton className="ms-Grid-col ms-sm12" onClick={handleOpenCreateModal}>Create a New Request</PrimaryButton>
+      </div>  
       {modalVisible && (
         <ModalComponent
+          requestTypes={requestTypes}
           initialData={selectedItem}
           mode={selectedItem ? "update" : "create"}
           onSubmit={handleSave}
           isModalOpen={true}
           hideModal={handleModalClose}
+          context={props.context}
         />
       )}
     </div>

@@ -1,33 +1,57 @@
 import * as React from "react";
 import {IMemberForm} from './interfaces/interfaces';
+import { TextField } from '@fluentui/react/lib/TextField';
+import { Stack, IStackStyles } from '@fluentui/react/lib/Stack';
+import { DatePicker, DayOfWeek, Dropdown, IDropdownOption, PrimaryButton, addDays, addMonths } from "@fluentui/react";
 
-// import { ITerm, ITermSet, taxonomy } from '@pnp/sp-taxonomy';
 
 const MemberForm: React.FC<{
+  requestTypes: Array<{ Title: string; DisplayOrder: string }>;
   mode: 'create' | 'update';
   initialData?: IMemberForm | null;
   onSubmit: (formData: IMemberForm) => void;
-}> = ({ mode, initialData, onSubmit }) => {
+  context?: any;
+}> = ({requestTypes, mode, initialData, onSubmit, context }) => {
+  const currentDate = new Date();
 
   const [formData, setFormData] = React.useState<IMemberForm>(
     initialData || {
       Title: '',
       Description: '',
-      // requestType: '',
+      // RequestType: '',
       RequestArea: '',
-      DueDate: '',
+      DueDate: addDays(currentDate,3),
       // tags: '',
     });
+
     React.useEffect(() => {
-      if (initialData) {
-        setFormData(initialData);
-      }
+      const fetchData = async () => {
+        if (initialData) {
+          setFormData(initialData);
+        }
+      };
+  
+      fetchData();
     }, [initialData]);
-
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
       setFormData((prevData: IMemberForm) => ({ ...prevData, [name]: value }));
+    };
+
+    const handleTextFieldChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string | undefined): void => {
+      handleChange(event as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>);
+    };
+
+    const handleDropdownChange = (
+      column: string,
+      event: React.FormEvent<HTMLDivElement>,
+      option?: IDropdownOption<any>,
+      index?: number | undefined
+    ) => {
+      if (option) {
+        const { key } = option;
+        setFormData((prevData: IMemberForm) => ({ ...prevData, [column]: key as string }));
+      }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -35,56 +59,86 @@ const MemberForm: React.FC<{
     onSubmit(formData);
   };
 
-  const requestAreasOptions = [
-    { label: 'IT', value: 'IT' },
-    { label: 'Sales', value: 'Sales' },
-    { label: 'Project Management', value: 'Project Management' },
-    { label: 'HR', value: 'hr' },
-    { label: 'Finance and Accounting', value: 'Finance and Accounting' },
-    { label: 'Marketing', value: 'Marketing' },
-    { label: 'R&D', value: 'R&D' },
+  const options: IDropdownOption[] = [
+    { key: 'IT', text: 'IT' },
+    { key: 'Sales', text: 'Sales' },
+    { key: 'Project Management', text: 'Project Management' },
+    { key: 'HR', text: 'HR' },
+    { key: 'Finance and Accounting', text: 'Finance and Accounting' },
+    { key: 'Marketing', text: 'Marketing' },
+    { key: 'R&D', text: 'R&D' },
   ];
+
+  const requestTypeOptions: IDropdownOption[] = requestTypes.map((option) => ({
+      key: option.Title,
+      text: option.Title,
+    }));
+
+    // const requestTypeUpdater = requestTypeOptions.reduce<{ [key: string]: any }>((acc, option) => {
+    //   acc[option.text] = option.key;
+    //   return acc;
+    // }, {});
+
+    const handleDatePickerChange = (date: Date | null | undefined): void => {
+      if (date) {
+        setFormData((prevData: IMemberForm) => ({ ...prevData, DueDate: date }));
+      }
+    };
+
+  const stackTokens = { childrenGap: 50 };
+  // const iconProps = { iconName: 'Calendar' };
+  const stackStyles: Partial<IStackStyles> = { root: { width: 650 } };
+  // const columnProps: Partial<IStackProps> = {
+//   tokens: { childrenGap: 15 },
+//   styles: { root: { width: 300 } },
+// };
 
   return (
     <form onSubmit={handleSubmit}>
-      <label>
-        Title:
-        <input type="text" name="Title" value={formData.Title} onChange={handleChange} required />
-      </label>
-
-      <label>
-        Description:
-        <textarea name="Description" value={formData.Description} onChange={handleChange} required />
-      </label>
-
-      {/* <label>
-        Request Type:
-        <input type="text" name="requestType" value={formData.requestType} onChange={handleChange} required />
-      </label> */}
-
-      <label>
-        Request Area:
-        <select name="RequestArea" value={formData.RequestArea} onChange={handleChange}>
-          <option value="">Select Request Area</option>
-          {requestAreasOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label>
-        Due Date:
-        <input type="datetime-local" name="DueDate" value={formData.DueDate} onChange={handleChange} required />
-      </label>
-
+      <Stack tokens={stackTokens} styles={stackStyles}>
+        <TextField label="Title" required name="Title" value={formData.Title} onChange={handleTextFieldChange} />
+        <TextField label="Description" required name="Description" value={formData.Description} onChange={handleTextFieldChange} multiline rows={5}/>
+        <Dropdown
+        id="RequestArea"
+        onChange={(e, option) => handleDropdownChange("RequestArea", e, option)}
+        placeholder="Select an option"
+        label="Request Area"
+        options={options}
+        // styles={dropdownStyles}
+        />
+        <Dropdown
+        id="RequestType"
+        onChange={(e, option) => handleDropdownChange("RequestType", e, option)}
+        placeholder="Select an option"
+        label="Request Type"
+        options={requestTypeOptions}
+        // styles={dropdownStyles}
+        />
+        <DatePicker
+          onSelectDate={(date) => handleDatePickerChange(date)}
+          isRequired
+          label="Due Date"
+          placeholder="Select a date..."
+          ariaLabel="Select a date"
+          value={formData.DueDate}
+          firstDayOfWeek={DayOfWeek.Monday}
+          minDate={addDays(new Date(), 3)}
+          maxDate={addMonths(new Date(), 1)}
+          highlightCurrentMonth={true}
+          showWeekNumbers={true}
+          firstWeekOfYear={1}
+          showMonthPickerAsOverlay={true}
+          showGoToToday={true}
+        />
+      <PrimaryButton type="submit">{mode === 'create' ? 'Create' : 'Update'}</PrimaryButton>
+      </Stack>
+      
+     
       {/* <label>
         Tags:
         <input type="text" name="tags" value={formData.tags} onChange={handleChange} />
       </label> */}
 
-      <button type="submit">{mode === 'create' ? 'Create' : 'Update'}</button>
     </form>
   );
 }

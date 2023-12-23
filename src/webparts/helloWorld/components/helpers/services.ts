@@ -1,9 +1,9 @@
 import { SPFI } from '@pnp/sp';
-import { getSP } from '../../../pnpjsConfig';
+import { getSP } from '../../../../pnpjsConfig';
 import { PnPClientStorage, dateAdd } from "@pnp/core";
 import * as moment from 'moment';
 
-export const formattedDate = (dateString: string | undefined) => {
+export const formattedDate = (dateString: Date | undefined) => {
   if (dateString) {
     const date = moment(dateString);
     if (date.isValid()) {
@@ -12,6 +12,23 @@ export const formattedDate = (dateString: string | undefined) => {
   }
   return 'N/A';
 };
+
+export const fetchRequestTypeData = async (context:any) =>{
+    const _sp: SPFI = getSP(context);
+  
+    try {
+      const items = await _sp.web.lists.getByTitle('Request Type').items();
+      return items.map((item) => ({
+        Title: item.Title,
+        DisplayOrder: item.DisplayOrder,
+        context: item.context,
+      }));
+    } catch (error) {
+      console.error('Error fetching request items', error);
+      throw error;
+    }
+  };
+
 
   export const fetchTaxonomyData = async (): Promise<any[]> => {
     const _sp: SPFI = getSP(); 

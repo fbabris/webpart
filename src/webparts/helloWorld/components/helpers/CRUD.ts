@@ -1,6 +1,6 @@
 import { SPFI } from '@pnp/sp';
-import { getSP } from '../../../pnpjsConfig';
-import { IMemberForm } from './interfaces/interfaces';
+import { getSP } from '../../../../pnpjsConfig';
+import { IMemberForm } from '../interfaces/interfaces';
 
 const LIST_NAME = 'Requests';
 
@@ -10,13 +10,14 @@ export const readAllFormData = async (context: any) => {
 
   try {
     const items = await _sp.web.lists.getByTitle(LIST_NAME).items();
+    console.log('fetch promise', items);
     return items.map((item) => ({
       ID: item.ID,
       Title: item.Title,
       Description: item.Description,
       DueDate: item.DueDate,
       ExecutionDate: item.ExecutionDate,
-      RequestType: item.RequestType,
+      RequestTypeId: item.RequestTypeId,
       RequestArea: item.RequestArea,
       AsignedManagerId: item.AsignedManagerId,
       Tags: item.Tags,

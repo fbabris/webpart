@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { Modal, IconButton } from '@fluentui/react/lib';
+import { Modal, IconButton, mergeStyleSets, FontWeights } from '@fluentui/react/lib';
 import MemberForm from './MemberForm';
-import { createFormData, updateFormData } from './CRUD';
+import { createFormData, updateFormData } from './helpers/CRUD';
 import { ModalProps } from './interfaces/interfaces';
 import { useBoolean } from '@fluentui/react-hooks';
+import * as moment from 'moment';
 
 
 const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
@@ -13,7 +14,15 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
 
   React.useEffect(() => {
     if (props.mode === 'update' && props.initialData) {
-      setFormDataForUpdate(props.initialData);
+      const { DueDate, ...restData } = props.initialData;
+  
+      // Convert DueDate from string to Date
+      const convertedDueDate = DueDate ? moment(DueDate).toDate() : undefined;
+  
+      setFormDataForUpdate({
+        ...restData,
+        DueDate: convertedDueDate,
+      });
       showModal();
     } else {
       setFormDataForUpdate(null);
@@ -33,32 +42,68 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
     hideModal();
   };
 
+  // const theme = getTheme;
+
+  const contentStyles = mergeStyleSets({
+    container: {
+      display: 'flex',
+      flexFlow: 'column nowrap',
+      alignItems: 'stretch',
+    },
+    header: {
+      flex: 'auto',
+      justifyContent: 'space-between',
+      borderTop: `4px solid black`,
+      display: 'flex',
+      alignItems: 'center',
+      fontWeight: FontWeights.semibold,
+      padding: '20px 40px 20px 40px',
+    },
+    heading: {
+      color: "black",
+      fontWeight: FontWeights.semibold,
+      fontSize: '2rem',
+      margin: '0',
+    },
+    body: {
+      flex: '4 4 auto',
+      padding: '0px 40px 40px 40px',
+      overflowY: 'hidden',
+      selectors: {
+        p: { margin: '14px 0' },
+        'p:first-child': { marginTop: 0 },
+        'p:last-child': { marginBottom: 0 },
+      }
+    }
+  });
+
   return (
-    <div>
       <Modal
         titleAriaId="modalHeader"
         isOpen={isModalOpen}
         onDismiss={hideModal}
         isBlocking={false}
-        containerClassName="ms-modalExample-container"
+        containerClassName={contentStyles.container}
       >
-        <div className="ms-modalExample-header">
-          <span id="modalHeader">{props.mode === 'create' ? 'Create' : 'Update'} Request </span>
+        <div className={contentStyles.header}>          
+          <h2 className={contentStyles.heading} id="modalHeader">{props.mode === 'create' ? 'Create a New' : 'Update the'} Request </h2>
           <IconButton
             iconProps={{ iconName: 'Cancel' }}
             ariaLabel="Close popup modal"
             onClick={hideModal}
           />
         </div>
-        <div id="modalBody">
+        <div className={contentStyles.body} id="modalBody">
           <MemberForm
+            requestTypes={props.requestTypes}
             mode={props.mode}
             initialData={formDataForUpdate}
             onSubmit={props.mode === 'create' ? handleCreate : handleUpdate}
+            context={props.context}
           />
+
         </div>
       </Modal>
-    </div>
   );
 };
 
