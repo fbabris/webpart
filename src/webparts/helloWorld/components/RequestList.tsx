@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { deleteFormData, readAllFormData, updateFormData} from './helpers/CRUD';
-import { IRequestList} from './interfaces/interfaces';
+import { IMemberForm, IRequestList, IRequestTypes} from './interfaces/interfaces';
 import ModalComponent from './ModalComponent';
 import {
   TableBody,
@@ -22,7 +22,7 @@ const RequestList: React.FC<IRequestList> = (props) => {
   const [selectedItem, setSelectedItem] = useState<IRequestList | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [usersArray, setUsersArray] = useState<{ [key: number]: string }> ({});
-  const [requestTypes, setRequestTypes] = React.useState<{ Title: string; DisplayOrder: string; }[]>([]);
+  const [requestTypes, setRequestTypes] = React.useState<IRequestTypes[]>([]);
 
     useEffect(() => {
     const fetchDataAndUsers = async () => {
@@ -62,7 +62,7 @@ const RequestList: React.FC<IRequestList> = (props) => {
     setSelectedItem(null);
   };
 
-  const handleSave = async (updatedData: IRequestList) => {
+  const handleSave = async (updatedData: IMemberForm) => {
     try {
         await updateFormData(selectedItem?.ID || 0, updatedData);
         handleModalClose();
@@ -81,6 +81,7 @@ const requestTypesArray = async () => {
   try {
     const requestTypesData = await fetchRequestTypeData(props.context);
     setRequestTypes(requestTypesData.map((requestTypeData) => ({
+      Id: requestTypeData.Id,
       Title: requestTypeData.Title, 
       DisplayOrder: requestTypeData.DisplayOrder,
     })));

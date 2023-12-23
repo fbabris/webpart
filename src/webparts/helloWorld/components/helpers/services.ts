@@ -18,7 +18,9 @@ export const fetchRequestTypeData = async (context:any) =>{
   
     try {
       const items = await _sp.web.lists.getByTitle('Request Type').items();
+      console.log('request type', items);
       return items.map((item) => ({
+        Id: item.Id,
         Title: item.Title,
         DisplayOrder: item.DisplayOrder,
         context: item.context,

@@ -42,7 +42,7 @@ export const createFormData = async (formData: IMemberForm): Promise<void> => {
       const item = await list.items.add({
         Title: formData.Title,
         Description: formData.Description,
-        // RequestType: formData.requestType,
+        RequestTypeId: formData.RequestTypeId,
         RequestArea: formData.RequestArea,
         DueDate: dueDate,
         // Tags: formData.tags,

@@ -3,7 +3,7 @@ import { WebPartContext } from "@microsoft/sp-webpart-base";
 export interface IMemberForm {
     Title: string;
     Description: string;
-    // requestType: string; 
+    RequestTypeId: number; 
     RequestArea: string|number;
     DueDate: Date | undefined;
     // tags: string;
@@ -34,7 +34,7 @@ export interface IHelloWorldProps {
   }
 
   export interface ModalProps {
-    requestTypes: any;
+    requestTypes: Array<{Id: number; Title:string; DisplayOrder:string}>
     mode: 'create' | 'update';
     initialData?: IMemberForm | null;
     onSubmit: (formData: IMemberForm) => void;
@@ -44,6 +44,15 @@ export interface IHelloWorldProps {
   }
 
   export interface IRequestTypes{
+    Id: number;
     Title: string; 
     DisplayOrder: string;
+  }
+
+  export interface IMemberFormFc{
+    requestTypes: Array<{Id:number; Title: string; DisplayOrder: string }>;
+    mode: 'create' | 'update';
+    initialData?: IMemberForm | null;
+    onSubmit: (formData: IMemberForm) => void;
+    context?: any;
   }

@@ -1,24 +1,17 @@
 import * as React from "react";
-import {IMemberForm} from './interfaces/interfaces';
+import {IMemberForm, IMemberFormFc} from './interfaces/interfaces';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { Stack, IStackStyles } from '@fluentui/react/lib/Stack';
 import { DatePicker, DayOfWeek, Dropdown, IDropdownOption, PrimaryButton, addDays, addMonths } from "@fluentui/react";
 
 
-const MemberForm: React.FC<{
-  requestTypes: Array<{ Title: string; DisplayOrder: string }>;
-  mode: 'create' | 'update';
-  initialData?: IMemberForm | null;
-  onSubmit: (formData: IMemberForm) => void;
-  context?: any;
-}> = ({requestTypes, mode, initialData, onSubmit, context }) => {
+const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, onSubmit, context }) => {
   const currentDate = new Date();
-
   const [formData, setFormData] = React.useState<IMemberForm>(
     initialData || {
       Title: '',
       Description: '',
-      // RequestType: '',
+      RequestTypeId: 0,
       RequestArea: '',
       DueDate: addDays(currentDate,3),
       // tags: '',
@@ -42,15 +35,32 @@ const MemberForm: React.FC<{
       handleChange(event as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>);
     };
 
-    const handleDropdownChange = (
-      column: string,
+    const handleRequestAreaChange = (
       event: React.FormEvent<HTMLDivElement>,
       option?: IDropdownOption<any>,
       index?: number | undefined
     ) => {
       if (option) {
         const { key } = option;
-        setFormData((prevData: IMemberForm) => ({ ...prevData, [column]: key as string }));
+        setFormData((prevData: IMemberForm) => ({
+          ...prevData,
+          RequestArea: key as string,
+        }));
+      }
+    };
+
+    const handleRequestTypeChange = (
+      event: React.FormEvent<HTMLDivElement>,
+      option?: IDropdownOption<any>,
+      index?: number | undefined
+    ) => {
+      if (option) {
+        const { text } = option;
+        const requestId = getRequestTypeId(text);
+        setFormData((prevData: IMemberForm) => ({
+          ...prevData,
+          RequestTypeId: requestId !== undefined ? requestId : 0, // Set to 0 if requestId is undefined
+        }));
       }
     };
 
@@ -85,6 +95,11 @@ const MemberForm: React.FC<{
       }
     };
 
+    const getRequestTypeId = (requestType: string): number | undefined => {
+      const foundType = requestTypes.find((type) => type.Title === requestType);
+      return foundType?.Id;
+    };
+
   const stackTokens = { childrenGap: 50 };
   // const iconProps = { iconName: 'Calendar' };
   const stackStyles: Partial<IStackStyles> = { root: { width: 650 } };
@@ -100,7 +115,7 @@ const MemberForm: React.FC<{
         <TextField label="Description" required name="Description" value={formData.Description} onChange={handleTextFieldChange} multiline rows={5}/>
         <Dropdown
         id="RequestArea"
-        onChange={(e, option) => handleDropdownChange("RequestArea", e, option)}
+        onChange={(e, option) => handleRequestAreaChange(e, option)}
         placeholder="Select an option"
         label="Request Area"
         options={options}
@@ -108,7 +123,7 @@ const MemberForm: React.FC<{
         />
         <Dropdown
         id="RequestType"
-        onChange={(e, option) => handleDropdownChange("RequestType", e, option)}
+        onChange={(e, option) => handleRequestTypeChange( e, option)}
         placeholder="Select an option"
         label="Request Type"
         options={requestTypeOptions}
