@@ -1,12 +1,13 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
-
+import { ITaxonomyLocalProperty } from "@pnp/sp/taxonomy";
+// import { ITermInfo } from "@pnp/spfx-controls-react/node_modules/@pnp/sp/taxonomy/";
 export interface IMemberForm {
     Title: string;
     Description: string;
     RequestTypeId: number; 
     RequestArea: string|number;
     DueDate: Date | undefined;
-    // tags: string;
+    Tags: string | any; 
 };
 
 export interface IRequestList {
@@ -55,4 +56,12 @@ export interface IHelloWorldProps {
     initialData?: IMemberForm | null;
     onSubmit: (formData: IMemberForm) => void;
     context?: any;
+  }
+
+  export interface CustomTermInfo {
+    id: string;
+    name: string;
+    path: string;
+    termSet: string;
+    localProperties: ITaxonomyLocalProperty[];
   }

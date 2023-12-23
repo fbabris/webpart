@@ -2,6 +2,7 @@ import { SPFI } from '@pnp/sp';
 import { getSP } from '../../../../pnpjsConfig';
 import { IMemberForm } from '../interfaces/interfaces';
 
+
 const LIST_NAME = 'Requests';
 
 export const readAllFormData = async (context: any) => {
@@ -10,7 +11,6 @@ export const readAllFormData = async (context: any) => {
 
   try {
     const items = await _sp.web.lists.getByTitle(LIST_NAME).items();
-    console.log('fetch promise', items);
     return items.map((item) => ({
       ID: item.ID,
       Title: item.Title,
@@ -34,21 +34,19 @@ export const createFormData = async (formData: IMemberForm): Promise<void> => {
     
     const _sp: SPFI = getSP();
     
-    try {
+    try {      
       const list = _sp.web.lists.getByTitle(LIST_NAME);
-
       const dueDate = formData.DueDate ? new Date(formData.DueDate) : null;
-
-      const item = await list.items.add({
+      // const fieldName = await list.fields.filter("Title eq 'Tags_0'").select("Title", "InternalName")();
+      // const TagsName = fieldName[0].InternalName; 
+      await list.items.add({
         Title: formData.Title,
         Description: formData.Description,
         RequestTypeId: formData.RequestTypeId,
         RequestArea: formData.RequestArea,
         DueDate: dueDate,
-        // Tags: formData.tags,
+        'n55b0e94a31948c0be73f8d6ffcf24ec0': formData.Tags,
       });
-  
-      console.log('Form data submitted to SharePoint:', item.data);
     } catch (error) {
       console.error('Error submitting form data to SharePoint:', error);
       throw error;
@@ -67,6 +65,7 @@ export const updateFormData = async (id: number, updatedFormData: IMemberForm): 
       RequestArea: updatedFormData.RequestArea,
       RequestTypeId: updatedFormData.RequestTypeId,
       DueDate: dueDate,
+      'n55b0e94a31948c0be73f8d6ffcf24ec0': updatedFormData.Tags,
     });
 
     console.log('Form data updated in SharePoint:', itemToUpdate.data);

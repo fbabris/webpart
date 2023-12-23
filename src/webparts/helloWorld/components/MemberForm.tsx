@@ -1,8 +1,11 @@
 import * as React from "react";
-import {IMemberForm, IMemberFormFc} from './interfaces/interfaces';
+import { IMemberForm, IMemberFormFc} from './interfaces/interfaces';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { Stack, IStackStyles } from '@fluentui/react/lib/Stack';
 import { DatePicker, DayOfWeek, Dropdown, IDropdownOption, PrimaryButton, addDays, addMonths } from "@fluentui/react";
+import { ModernTaxonomyPicker } from "@pnp/spfx-controls-react";
+import { ITermInfo } from "@pnp/spfx-controls-react/node_modules/@pnp/sp/taxonomy/";
+
 
 
 const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, onSubmit, context }) => {
@@ -14,7 +17,7 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
       RequestTypeId: 0,
       RequestArea: '',
       DueDate: addDays(currentDate,3),
-      // tags: '',
+      Tags: '',
     });
 
     React.useEffect(() => {
@@ -84,11 +87,6 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
       text: option.Title,
     }));
 
-    // const requestTypeUpdater = requestTypeOptions.reduce<{ [key: string]: any }>((acc, option) => {
-    //   acc[option.text] = option.key;
-    //   return acc;
-    // }, {});
-
     const handleDatePickerChange = (date: Date | null | undefined): void => {
       if (date) {
         setFormData((prevData: IMemberForm) => ({ ...prevData, DueDate: date }));
@@ -105,13 +103,18 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
       return foundTypeId?.Title;
     }
 
+    const onTaxPickerChange = (terms: ITermInfo[]) => {
+      if (terms) {
+        const tagsString = terms.map(term => `${term.labels[0].name}|${term.id}`).join(";");
+        setFormData((prevData: IMemberForm) => ({
+          ...prevData,
+          Tags: tagsString,
+        }));
+      }
+    };
+
   const stackTokens = { childrenGap: 50 };
-  // const iconProps = { iconName: 'Calendar' };
   const stackStyles: Partial<IStackStyles> = { root: { width: 650 } };
-  // const columnProps: Partial<IStackProps> = {
-//   tokens: { childrenGap: 15 },
-//   styles: { root: { width: 300 } },
-// };
 
   return (
     <form onSubmit={handleSubmit}>
@@ -153,14 +156,16 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
           showMonthPickerAsOverlay={true}
           showGoToToday={true}
         />
+        <ModernTaxonomyPicker 
+          allowMultipleSelections={true}
+          termSetId="dc544f14-4bee-4bef-9ce6-b36622cb704b"
+          panelTitle="Select Term"
+          label="Tags"
+          context={context}
+          onChange={onTaxPickerChange}
+        />
       <PrimaryButton type="submit">{mode === 'create' ? 'Create' : 'Update'}</PrimaryButton>
       </Stack>
-      
-     
-      {/* <label>
-        Tags:
-        <input type="text" name="tags" value={formData.tags} onChange={handleChange} />
-      </label> */}
 
     </form>
   );
