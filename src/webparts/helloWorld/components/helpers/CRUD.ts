@@ -64,7 +64,8 @@ export const updateFormData = async (id: number, updatedFormData: IMemberForm): 
     const itemToUpdate = await list.items.getById(id).update({
       Title: updatedFormData.Title,
       Description: updatedFormData.Description,
-      // RequestArea: updatedFormData.RequestArea,
+      RequestArea: updatedFormData.RequestArea,
+      RequestTypeId: updatedFormData.RequestTypeId,
       DueDate: dueDate,
     });
 

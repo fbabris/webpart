@@ -100,6 +100,11 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
       return foundType?.Id;
     };
 
+    const getRequestTypeFromId = (requestTypeId:number):string | undefined => {
+      const foundTypeId = requestTypes.find((type)=>type.Id === requestTypeId);
+      return foundTypeId?.Title;
+    }
+
   const stackTokens = { childrenGap: 50 };
   // const iconProps = { iconName: 'Calendar' };
   const stackStyles: Partial<IStackStyles> = { root: { width: 650 } };
@@ -116,17 +121,20 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
         <Dropdown
         id="RequestArea"
         onChange={(e, option) => handleRequestAreaChange(e, option)}
-        placeholder="Select an option"
+        placeholder="Please select a value"
         label="Request Area"
         options={options}
+        selectedKey={formData.RequestArea}
         // styles={dropdownStyles}
         />
         <Dropdown
         id="RequestType"
+        
         onChange={(e, option) => handleRequestTypeChange( e, option)}
         placeholder="Select an option"
         label="Request Type"
         options={requestTypeOptions}
+        selectedKey={getRequestTypeFromId(formData.RequestTypeId)}
         // styles={dropdownStyles}
         />
         <DatePicker
