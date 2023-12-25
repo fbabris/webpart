@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { deleteFormData, readAllFormData, updateFormData} from './helpers/CRUD';
 import { IMemberForm, IRequestList, IRequestTypes} from './interfaces/interfaces';
 import ModalComponent from './ModalComponent';
 import {
@@ -13,9 +12,12 @@ import {
   Button,
 } from "@fluentui/react-components";
 import { DeleteIcon, EditIcon } from '@fluentui/react-icons-mdl2';
-import { fetchRequestTypeData, fetchTaxonomyData, formattedDate, getSiteUsers } from './helpers/services';
 import 'office-ui-fabric-core/dist/css/fabric.min.css';
 import { PrimaryButton } from '@fluentui/react';
+import FormDataManager from './helpers/FormDataManager';
+import Services from './helpers/Services';
+
+
 
 const RequestList: React.FC<IRequestList> = (props) => {
   const [requestItems, setRequestItems] = useState<IRequestList[]>([]);
@@ -23,6 +25,8 @@ const RequestList: React.FC<IRequestList> = (props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [usersArray, setUsersArray] = useState<{ [key: number]: string }> ({});
   const [requestTypes, setRequestTypes] = React.useState<IRequestTypes[]>([]);
+  const formDataManager = new FormDataManager(props.context);
+  const services = new Services(props.context);
 
     useEffect(() => {
     const fetchDataAndUsers = async () => {
@@ -48,14 +52,7 @@ const RequestList: React.FC<IRequestList> = (props) => {
     }
   };
   
-  const deleteItem = async (item: IRequestList) => {
-    try {
-      await deleteFormData(item.ID);
-      fetchData();
-    } catch (error) {
-      console.error('Error handling delete:', error);
-    }
-  };
+  
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -64,13 +61,22 @@ const RequestList: React.FC<IRequestList> = (props) => {
 
   const handleSave = async (updatedData: IMemberForm) => {
     try {
-        await updateFormData(selectedItem?.ID || 0, updatedData);
+        await formDataManager.updateFormData(selectedItem?.ID || 0, updatedData);
         handleModalClose();
         fetchData();
     } catch (error) {
         console.error('Error handling update:', error);
     }
 };
+
+const deleteItem = async (item: IRequestList) => {
+    try {
+      await formDataManager.deleteFormData(item.ID);
+      fetchData();
+    } catch (error) {
+      console.error('Error handling delete:', error);
+    }
+  };
 
 const handleOpenCreateModal = () => {
   setSelectedItem(null);
@@ -79,7 +85,7 @@ const handleOpenCreateModal = () => {
 
 const requestTypesArray = async () => {
   try {
-    const requestTypesData = await fetchRequestTypeData(props.context);
+    const requestTypesData = await services.fetchRequestTypeData();
     setRequestTypes(requestTypesData.map((requestTypeData) => ({
       Id: requestTypeData.Id,
       Title: requestTypeData.Title, 
@@ -94,7 +100,7 @@ const requestTypesArray = async () => {
 
 const fetchData = async () => {
   try {
-    const items = await readAllFormData(props.context);
+    const items = await formDataManager.readAllFormData();
     setRequestItems(items);
     console.log('fetch items', items);
     return requestItems;
@@ -105,7 +111,7 @@ const fetchData = async () => {
 
 const storeTaxonomyData = async () => {
   try {
-    const taxonomyData = await fetchTaxonomyData();
+    const taxonomyData = await services.fetchTaxonomyData();
     console.log('Taxonomy Data:', taxonomyData);
   } catch (error) {
     console.error('Error fetching taxonomy data:', error);
@@ -114,7 +120,7 @@ const storeTaxonomyData = async () => {
 
 const storeSiteUsers = async () => {
   try {
-    const siteUserData = await getSiteUsers(props.context);
+    const siteUserData = await services.getSiteUsers();
     const usersData:any = {};
     for (const user of siteUserData) {
       if (user.Id && user.Title) {
@@ -172,7 +178,7 @@ const columns = [
             <TableRow className="ms-Grid-row" key={item.ID}>
               <TableCell className={gridClasses.regular} >{item.Title}</TableCell>
               {/* <TableCell className={gridClasses.hid} >{item.Description}</TableCell> */}
-              <TableCell className={gridClasses.mid3} >{formattedDate(item.DueDate)}</TableCell>
+              <TableCell className={gridClasses.mid3} >{services.formattedDate(item.DueDate)}</TableCell>
               {/* <TableCell className={gridClasses.large1}>{formattedDate(item.ExecutionDate)}</TableCell> */}
               {/* <TableCell className={gridClasses.hid}>{item.RequestType}</TableCell> */}
               <TableCell className={gridClasses.large2}>{item.RequestArea}</TableCell>

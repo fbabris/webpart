@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Modal, IconButton, mergeStyleSets, FontWeights } from '@fluentui/react/lib';
 import MemberForm from './MemberForm';
-import { createFormData, updateFormData } from './helpers/CRUD';
+import FormDataManager from './helpers/FormDataManager';
 import { ModalProps } from './interfaces/interfaces';
 import { useBoolean } from '@fluentui/react-hooks';
 import * as moment from 'moment';
@@ -11,6 +11,7 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
 
   const [isModalOpen, { setTrue: showModal, setFalse: hideModal }] = useBoolean(false);
   const [formDataForUpdate, setFormDataForUpdate] = React.useState<any>(null);
+  const formDataManager = new FormDataManager(props.context);
 
   React.useEffect(() => {
     if (props.mode === 'update' && props.initialData) {
@@ -31,13 +32,13 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
   }, [props.isModalOpen, props.mode, props.initialData]);
 
   const handleCreate = (formData: any) => {
-    createFormData(formData);
+    formDataManager.createFormData(formData);
     console.log('Creating:', formData);
     hideModal();
   };
 
   const handleUpdate = (formData: any) => {
-    updateFormData(formData.ID, formData);    
+    formDataManager.updateFormData(formData.ID, formData);    
     console.log('Updating:', formData);
     hideModal();
   };
