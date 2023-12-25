@@ -8,23 +8,31 @@ private LIST_NAME = 'Requests';
     return await this._sp.web.lists.getByTitle(this.LIST_NAME);
   }
 
-  public async readAllFormData() {
-    try {
-        const list = await this.list();
-      const items = await list.items();
-      return items.map((item) => ({
-        ID: item.ID,
-        Title: item.Title,
-        Description: item.Description,
-        DueDate: item.DueDate,
-        ExecutionDate: item.ExecutionDate,
-        RequestTypeId: item.RequestTypeId,
-        RequestArea: item.RequestArea,
-        AsignedManagerId: item.AsignedManagerId,
-        Tags: item.Tags,
-        Status: item.Status,
-        context: item.context,
-      }));
+public async readAllFormData() {
+  try {
+    const list = await this.list();
+    let items = await list.items();
+    const manager = await this.userIsManager();
+    console.log('is this manager', manager);
+    if (!manager) {
+        const userId = await this.getUserId();
+      items = items.filter((item) => item.AuthorId === userId);
+      console.log('is this user a manager', manager, 'userId', userId)
+    }    
+    
+    return items.map((item) => ({
+    ID: item.ID,
+    Title: item.Title,
+    Description: item.Description,
+    DueDate: item.DueDate,
+    ExecutionDate: item.ExecutionDate,
+    RequestTypeId: item.RequestTypeId,
+    RequestArea: item.RequestArea,
+    AsignedManagerId: item.AsignedManagerId,
+    Tags: item.Tags,
+    Status: item.Status,
+    context: item.context,
+    }));
     } catch (error) {
       console.error('Error fetching request items', error);
       throw error;

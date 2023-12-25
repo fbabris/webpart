@@ -10,6 +10,8 @@ import "@pnp/sp/batching";
 import "@pnp/sp/webs";
 import "@pnp/sp/site-users/web";
 import "@pnp/sp/fields";
+import "@pnp/graph/groups";
+
 
 
 let _sp!: SPFI;

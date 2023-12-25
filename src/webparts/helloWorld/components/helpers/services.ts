@@ -65,6 +65,17 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
         throw error;
       }
     }
+
+    public async userIsManager () {
+      const groups = await this._sp.web.currentUser.groups();
+      return groups[0].Title === 'Request Managers';
+    }
+
+    public async getUserId() {
+      const userId = await this._sp.web.currentUser();
+      return(userId.Id);
+    }
+
   }
   
   export default Services;
