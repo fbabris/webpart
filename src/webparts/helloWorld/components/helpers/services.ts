@@ -1,6 +1,6 @@
   import { SPFI } from '@pnp/sp';
   import { getSP } from '../../../../pnpjsConfig';
-  import { PnPClientStorage, dateAdd } from "@pnp/core";
+  // import { PnPClientStorage, dateAdd } from "@pnp/core";
   import * as moment from 'moment';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
   
@@ -9,13 +9,26 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
     protected _sp: SPFI;
     protected LIST_NAME = 'Requests';
     protected async list() {
-    return await this._sp.web.lists.getByTitle(this.LIST_NAME);
-  }
+      return await this._sp.web.lists.getByTitle(this.LIST_NAME);
+    }
     
     constructor(context?: WebPartContext) {
       if(context){
           this._sp = getSP(context);    
       }
+    }
+
+    public async  fetchTagsById(tag:any){
+      this._sp.termStore.searchTerm({
+      label: tag.Label,
+      setId: "dc544f14-4bee-4bef-9ce6-b36622cb704b",
+    });
+    return tag;
+  }
+
+    protected tagsFormater(tags:any){
+      const tagsString = tags.map((tag:any):string => `${tag.labels[0].name}|${tag.id}`).join(";");
+      return tagsString;
     }
 
     public formattedDate(dateString:Date|undefined) {
@@ -43,22 +56,22 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
       }
     }
   
-    public async fetchTaxonomyData() {
-      try {
-        const store = new PnPClientStorage();
-        const cachedData = await store.local.getOrPut("taxonomyData", async () => {
-          const termStoreId = "944ad0e3-dae2-4ffb-88bc-ba2455ab6cc5";
-          const termSetId = "dc544f14-4bee-4bef-9ce6-b36622cb704b";
-          const termSet = this._sp.termStore.groups.getById(termStoreId).sets.getById(termSetId);
-          const termSetData = await termSet.getAllChildrenAsOrderedTree();
-          return termSetData;
-        }, dateAdd(new Date(), "minute", 30));
-        return cachedData;
-      } catch (error) {
-        console.error('Error fetching taxonomy data:', error);
-        throw error;
-      }
-    }
+    // public async fetchTaxonomyData() {
+    //   try {
+    //     const store = new PnPClientStorage();
+    //     const cachedData = await store.local.getOrPut("taxonomyData", async () => {
+    //       const termStoreId = "944ad0e3-dae2-4ffb-88bc-ba2455ab6cc5";
+    //       const termSetId = "dc544f14-4bee-4bef-9ce6-b36622cb704b";
+    //       const termSet = this._sp.termStore.groups.getById(termStoreId).sets.getById(termSetId);
+    //       const termSetData = await termSet.getAllChildrenAsOrderedTree();
+    //       return termSetData;
+    //     }, dateAdd(new Date(), "minute", 30));
+    //     return cachedData;
+    //   } catch (error) {
+    //     console.error('Error fetching taxonomy data:', error);
+    //     throw error;
+    //   }
+    // }
   
     public async getSiteUsers() {
       try {
@@ -66,6 +79,16 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
         console.log('site users', siteUsers);
         return siteUsers;
       } catch (error) {
+        console.error('Error fetching users data', error);
+        throw error;
+      }
+    }
+
+    public async getUserById(Id:number) {
+      try{
+        const userById = await this._sp.web.getUserById(Id)();
+        return userById;
+      }catch (error){
         console.error('Error fetching users data', error);
         throw error;
       }

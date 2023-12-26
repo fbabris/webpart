@@ -45,7 +45,7 @@ public async readAllFormData() {
         RequestTypeId: formData.RequestTypeId,
         RequestArea: formData.RequestArea,
         DueDate: dueDate,
-        'n55b0e94a31948c0be73f8d6ffcf24ec0': formData.Tags,
+        'n55b0e94a31948c0be73f8d6ffcf24ec0': this.tagsFormater(formData.Tags),
         AsignedManagerId: formData.AsignedManagerId,
       });
     } catch (error) {
@@ -65,7 +65,7 @@ public async readAllFormData() {
         RequestArea: updatedFormData.RequestArea,
         RequestTypeId: updatedFormData.RequestTypeId,
         DueDate: dueDate,
-        'n55b0e94a31948c0be73f8d6ffcf24ec0': updatedFormData.Tags,
+        'n55b0e94a31948c0be73f8d6ffcf24ec0': this.tagsFormater(updatedFormData.Tags),
         AsignedManagerId: updatedFormData.AsignedManagerId,
       });
 

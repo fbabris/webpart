@@ -36,7 +36,7 @@ const RequestList: React.FC<IRequestList> = (props) => {
       await fetchData();
       await storeSiteUsers();
       requestTypesArray();
-      storeTaxonomyData();
+      // storeTaxonomyData();
       const userIsManager = await services.userIsManager();
       setIsUserManager(userIsManager);
     };
@@ -114,14 +114,14 @@ const fetchData = async () => {
   }
 };
 
-const storeTaxonomyData = async () => {
-  try {
-    const taxonomyData = await services.fetchTaxonomyData();
-    console.log('Taxonomy Data:', taxonomyData);
-  } catch (error) {
-    console.error('Error fetching taxonomy data:', error);
-  }
-};
+// const storeTaxonomyData = async () => {
+//   try {
+//     const taxonomyData = await services.fetchTaxonomyData();
+//     console.log('Taxonomy Data:', taxonomyData);
+//   } catch (error) {
+//     console.error('Error fetching taxonomy data:', error);
+//   }
+// };
 
 const storeSiteUsers = async () => {
   try {
@@ -215,6 +215,7 @@ const columns = [
           isModalOpen={true}
           hideModal={handleModalClose}
           context={props.context}
+          userIsManager={isUserManager}
         />
       )}
     </div>

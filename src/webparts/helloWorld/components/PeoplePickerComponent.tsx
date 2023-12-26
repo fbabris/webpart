@@ -5,24 +5,27 @@ import { WebPartContext } from "@microsoft/sp-webpart-base";
 
 interface PeoplePickerComponentProps {
     context: WebPartContext;
-    onChange: (items: IPersonaProps[]) => void; 
+    onChange: (items: IPersonaProps[]) => void;
+    userIsManager: boolean;
+    AsignedManagerId:number;
   }
 
-const PeoplePickerComponent: React.FC<PeoplePickerComponentProps> = ({context, onChange}) => {
-    const [currentUser, setCurrentUser] = React.useState<IPersonaProps | null>(null);
+const PeoplePickerComponent: React.FC<PeoplePickerComponentProps> = ({context, onChange, userIsManager, AsignedManagerId}) => {
+    // const [currentUser, setCurrentUser] = React.useState<IPersonaProps | null>(null);
     const [managers, setManagers] = React.useState<IPersonaProps[]>([]);
     const [selectedItems, setSelectedItems] = React.useState<IPersonaProps[]>([]);
+    const [isLoading, setIsLoading] = React.useState<boolean>(true);
     const services = new Services(context);
     
     
-    const fetchCurrentUser = async () => {
-            const currentUser = await services.getCurrentUser();
-            const currentUserPersona: IPersonaProps = {
-                key: currentUser.Id.toString(),
-                text: currentUser.Title,
-                secondaryText: currentUser.Email,
+    const fetchAsignedManager = async (AsignedManagerId:number) => {
+            const asignedManager = await services.getUserById(AsignedManagerId);
+            const asignedManagerPersona: IPersonaProps = {
+                key: AsignedManagerId.toString(),
+                text: asignedManager.Title,
+                secondaryText: asignedManager.Email,
             };
-            setCurrentUser(currentUserPersona);
+            setSelectedItems(asignedManagerPersona ? [asignedManagerPersona] : []);
         }
     const fetchManagers = async () => {
           const managersArray = await services.getManagers();
@@ -34,15 +37,31 @@ const PeoplePickerComponent: React.FC<PeoplePickerComponentProps> = ({context, o
           setManagers(transformedManagers);
           console.log('managers array', transformedManagers);
         };    
-    React.useEffect(() => {    
-        fetchCurrentUser();
-        if (currentUser) {
-            setSelectedItems([currentUser]);
-        }
-        fetchManagers();
+
+        React.useEffect(() => {
+          const fetchData = async () => {
+            try {
+              await fetchAsignedManager(AsignedManagerId);
+              await fetchManagers();
+            } catch (error) {
+              console.error('Error fetching data:', error);
+            } finally {
+              setIsLoading(false);
+            }
+          };
+      
+          fetchData();
+        }, [context, AsignedManagerId]);
+
+    // React.useEffect(() => {    
+    //     fetchAsignedManager(AsignedManagerId);
+    //     if (currentUser) {
+    //         setSelectedItems([currentUser]);
+    //     }
+    //     fetchManagers();
         
         
-      }, [context]);
+    //   }, [context]);
 
       const initialSuggestedPeople = managers.slice(0, 3);
 
@@ -53,18 +72,22 @@ const PeoplePickerComponent: React.FC<PeoplePickerComponentProps> = ({context, o
     return initialSuggestedPeople;
   };
     
-return(
-<CompactPeoplePicker
-onResolveSuggestions={onResolveSuggestions}
-onChange={onChange}
-defaultSelectedItems={selectedItems}
-inputProps={{
-  onBlur: (ev: React.FocusEvent<HTMLInputElement>) => console.log('onBlur called'),
-  onFocus: (ev: React.FocusEvent<HTMLInputElement>) => console.log('onFocus called'),
-  'aria-label': 'People Picker',
-}}
-/>
-);
+  return(
+    <div>
+      {!isLoading ? (<CompactPeoplePicker
+        disabled={!userIsManager}
+        onResolveSuggestions={onResolveSuggestions}
+        onChange={onChange}
+        defaultSelectedItems={selectedItems}
+        itemLimit={1}
+        inputProps={{
+          onBlur: (ev: React.FocusEvent<HTMLInputElement>) => console.log('onBlur called'),
+          onFocus: (ev: React.FocusEvent<HTMLInputElement>) => console.log('onFocus called'),
+          'aria-label': 'People Picker',
+        }}
+      />):(<p>loading...</p>)}
+    </div>
+  );
 };
 
 export default PeoplePickerComponent;

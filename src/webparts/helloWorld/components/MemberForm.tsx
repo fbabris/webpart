@@ -10,9 +10,9 @@ import PeoplePickerComponent from "./PeoplePickerComponent";
 
 
 
-const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, onSubmit, context }) => {
-  const currentDate = new Date();
+const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, onSubmit, context, userIsManager }) => {
   // const services = new Services(context);
+  const currentDate = new Date();
   const [formData, setFormData] = React.useState<IMemberForm>(
     initialData || {
       Title: '',
@@ -24,15 +24,75 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
       AsignedManagerId: 0,
     });
 
-    React.useEffect(() => {
-      const fetchData = async () => {
-        if (initialData) {
-          setFormData(initialData);
-        }
-      };
+    const [hasTags, setHasTags] = React.useState<boolean>(false);
+    const [isLoading, setIsLoading] = React.useState(true);
+
+    const fetchData = async () => {
+      if (initialData) {
+        console.log('Initial Data:', initialData);
+        
   
+        if (initialData.Tags && initialData.Tags.length > 0) {
+          console.log('Has Tags: true');
+          setHasTags(true);
+             
+          try {
+            const initialTagsArray = initialData.Tags.map((tag:any) => ({
+              id: tag.TermGuid,
+              labels:
+                [{
+                  name: tag.Label,
+                  isDefault: true,
+                  languageTag: 'en-US',
+                }],
+            })); 
+            console.log(initialTagsArray);   
+            setFormData((prevData) => ({
+              ...prevData,
+              Tags: initialTagsArray,
+            }));
+          } catch (error) {
+            console.error('Error fetching tags:', error);
+          } finally {
+            setHasTags(true);
+            setIsLoading(false);
+          }
+        } else {
+          console.log('Has Tags: false');
+          setHasTags(false);
+          setFormData(initialData);
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    React.useEffect(() => {
+         
       fetchData();
     }, [initialData]);
+
+    // React.useEffect(() => {
+    //   const fetchData = async () => {
+    //     if (initialData) {
+    //       if(initialData.Tags && initialData.Tags.length>0){
+    //         const mappedTags = initialData.Tags.map((tag: { Label: string; TermGuid: string; }) => ({
+    //         name: tag.Label,
+    //         id: tag.TermGuid            
+    //       }));
+    //       const updatedData = {
+    //           ...initialData,
+    //           Tags: mappedTags
+    //         };          
+    //       setFormData(updatedData);
+    //       }else{
+    //         setFormData(initialData);
+    //       }
+
+    //     }        
+    //   };
+  
+    //   fetchData();
+    // }, [initialData]);
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
       setFormData((prevData: IMemberForm) => ({ ...prevData, [name]: value }));
@@ -109,11 +169,11 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
 
     const onTaxPickerChange = (terms: ITermInfo[]) => {
       if (terms) {
-        const tagsString = terms.map(term => `${term.labels[0].name}|${term.id}`).join(";");
         setFormData((prevData: IMemberForm) => ({
           ...prevData,
-          Tags: tagsString,
+          Tags: terms,
         }));
+        console.log('tags', terms);
       }
     };
     const handlePeoplePickerChange = async (manager: IPersonaProps[]) => {
@@ -123,22 +183,21 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
         return;
       }
       const parsedManagerId = parseInt(managerId.toString(), 10);
-      await 
-      setFormData((prevData: IMemberForm) => ({
+      await setFormData((prevData: IMemberForm) => ({
         ...prevData,
         AsignedManagerId: parsedManagerId,
       }));
-      console.log('form data', formData);
     };
 
   const stackTokens = { childrenGap: 50 };
   const stackStyles: Partial<IStackStyles> = { root: { width: 650 } };
+  const initialValuesProps = hasTags ? { initialValues: formData.Tags} : {};
 
   return (
     <form onSubmit={handleSubmit}>
       <Stack tokens={stackTokens} styles={stackStyles}>
-        <TextField label="Title" required name="Title" value={formData.Title} onChange={handleTextFieldChange} />
-        <TextField label="Description" required name="Description" value={formData.Description} onChange={handleTextFieldChange} multiline rows={5}/>
+        <TextField label="Title" required name="Title" value={formData.Title} onChange={handleTextFieldChange} disabled={userIsManager}/>
+        <TextField label="Description" required name="Description" value={formData.Description} onChange={handleTextFieldChange} multiline rows={5} disabled={userIsManager}/>
         <Dropdown
         id="RequestArea"
         onChange={(e, option) => handleRequestAreaChange(e, option)}
@@ -174,17 +233,20 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
           showMonthPickerAsOverlay={true}
           showGoToToday={true}
         />
-        <ModernTaxonomyPicker 
-          allowMultipleSelections={true}
-          termSetId="dc544f14-4bee-4bef-9ce6-b36622cb704b"
-          panelTitle="Select Term"
-          label="Tags"
-          context={context}
-          onChange={onTaxPickerChange}
-        />
+        {!isLoading && (
+          <ModernTaxonomyPicker 
+            {...initialValuesProps}
+            allowMultipleSelections={true}
+            termSetId="dc544f14-4bee-4bef-9ce6-b36622cb704b"
+            panelTitle="Select Term"
+            label="Tags"
+            context={context}
+            onChange={onTaxPickerChange}
+          />
+        )}
         <div>
           <Label>Asigned Manager</Label>
-          <PeoplePickerComponent context={context} onChange={(manager)=>{handlePeoplePickerChange(manager)}}/>
+          <PeoplePickerComponent context={context} onChange={(manager)=>{handlePeoplePickerChange(manager)}} userIsManager={userIsManager} AsignedManagerId={formData.AsignedManagerId}/>
         </div>
       <PrimaryButton type="submit">{mode === 'create' ? 'Create' : 'Update'}</PrimaryButton>
       </Stack>

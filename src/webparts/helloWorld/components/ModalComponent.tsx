@@ -101,6 +101,7 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
             initialData={formDataForUpdate}
             onSubmit={props.mode === 'create' ? handleCreate : handleUpdate}
             context={props.context}
+            userIsManager={props.userIsManager}
           />
 
         </div>

@@ -43,6 +43,7 @@ export interface IHelloWorldProps {
     isModalOpen: boolean;
     hideModal: () => void;
     context: WebPartContext;
+    userIsManager: boolean;
   }
 
   export interface IRequestTypes{
@@ -57,6 +58,7 @@ export interface IHelloWorldProps {
     initialData?: IMemberForm | null;
     onSubmit: (formData: IMemberForm) => void;
     context?: any;
+    userIsManager: boolean;
   }
 
   export interface CustomTermInfo {
