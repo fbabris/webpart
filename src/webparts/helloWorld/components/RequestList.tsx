@@ -26,6 +26,7 @@ const RequestList: React.FC<IRequestList> = (props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [usersArray, setUsersArray] = useState<{ [key: number]: string }> ({});
   const [requestTypes, setRequestTypes] = React.useState<IRequestTypes[]>([]);
+  const [isUserManager, setIsUserManager] = useState<boolean>(false);
   const formDataManager = new FormDataManager(props.context);
   const services = new Services(props.context);
 
@@ -36,6 +37,8 @@ const RequestList: React.FC<IRequestList> = (props) => {
       await storeSiteUsers();
       requestTypesArray();
       storeTaxonomyData();
+      const userIsManager = await services.userIsManager();
+      setIsUserManager(userIsManager);
     };
   
     fetchDataAndUsers();
@@ -157,7 +160,6 @@ const columns = [
   { key: 'Tags', fieldName: 'Tags', className:gridClasses.large2},
   { key: 'Status', fieldName: 'Status', className:gridClasses.small2},
   { key: 'EditDelete', fieldName: '', className:gridClasses.small1},
-
 ];
 
   return (
@@ -191,16 +193,18 @@ const columns = [
               ))}
               </TableCell>
               <TableCell className={gridClasses.small2}>{item.Status}</TableCell>
+              {item.Status === 'New' && (
               <div className={gridClasses.small1}>
                 <TableCell ><Button icon={<EditIcon/>} onClick={() => handleUpdate(item)}></Button></TableCell>
-                <TableCell ><Button icon={<DeleteIcon/>} onClick={() => handleDelete(item)}></Button></TableCell> 
-              </div>           
+                <TableCell><Button icon={<DeleteIcon />} onClick={() => handleDelete(item)}></Button></TableCell>              
+                </div>
+              )}           
             </TableRow>
           ))}
         </TableBody>
       </Table>
       <div className="ms-Grid-row center">          
-        <PrimaryButton className="ms-Grid-col ms-sm12" onClick={handleOpenCreateModal}>Create a New Request</PrimaryButton>
+        {!(isUserManager) && (<PrimaryButton className="ms-Grid-col ms-sm12" onClick={handleOpenCreateModal}>Create a New Request</PrimaryButton>)}
       </div>  
       {modalVisible && (
         <ModalComponent

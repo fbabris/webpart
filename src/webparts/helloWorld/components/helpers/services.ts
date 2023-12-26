@@ -7,6 +7,10 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
   class Services {
 
     protected _sp: SPFI;
+    protected LIST_NAME = 'Requests';
+    protected async list() {
+    return await this._sp.web.lists.getByTitle(this.LIST_NAME);
+  }
     
     constructor(context?: WebPartContext) {
       if(context){
@@ -59,6 +63,7 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
     public async getSiteUsers() {
       try {
         const siteUsers = await this._sp.web.siteUsers();
+        console.log('site users', siteUsers);
         return siteUsers;
       } catch (error) {
         console.error('Error fetching users data', error);
@@ -68,13 +73,53 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
 
     public async userIsManager () {
       const groups = await this._sp.web.currentUser.groups();
+      // this.getSiteUserById(9); 
       return groups[0].Title === 'Request Managers';
     }
 
     public async getUserId() {
       const userId = await this._sp.web.currentUser();
-      return(userId.Id);
+      return userId.Id;
     }
+
+    public async getManagers() {
+      const managersGroupId = (await this._sp.web.siteGroups.getByName('Request Managers')()).Id;
+      const managersGroupUsers = await this._sp.web.siteGroups.getById(managersGroupId).users();
+      return managersGroupUsers;
+    }
+
+    public async getCurrentUser() {
+      const currentUser = await this._sp.web.currentUser();
+      return currentUser;
+    }
+
+    public async getUserByEmail(userEmail:string|undefined) {
+      if (userEmail){
+        try{
+          const userFromEmail = await this._sp.web.siteUsers.getByEmail(userEmail);
+          return userFromEmail;
+        } catch(error) {
+        console.error(error);
+      };
+    }
+  }
+
+  public async findInternalName(fieldDisplayName: string): Promise<string | null> {
+    try {
+      const list = await this.list();
+      const field = await list.fields.getByTitle(fieldDisplayName)();
+      return field.InternalName || null;
+    } catch (error) {
+      console.error("Error finding internal name:", error);
+      return null;
+    }
+  }
+
+    // public async getSiteUserById(Id:number) {
+    //   const user = await this._sp.web.siteUsers.getById(Id)();
+    //   console.log('user', user);
+    //   return true;
+    // }
 
   }
   

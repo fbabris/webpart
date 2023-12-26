@@ -7,7 +7,8 @@ export interface IMemberForm {
     RequestTypeId: number; 
     RequestArea: string|number;
     DueDate: Date | undefined;
-    Tags: string | any; 
+    Tags: string | any;
+    AsignedManagerId: number; 
 };
 
 export interface IRequestList {

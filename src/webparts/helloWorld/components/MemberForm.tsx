@@ -2,14 +2,17 @@ import * as React from "react";
 import { IMemberForm, IMemberFormFc} from './interfaces/interfaces';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { Stack, IStackStyles } from '@fluentui/react/lib/Stack';
-import { DatePicker, DayOfWeek, Dropdown, IDropdownOption, PrimaryButton, addDays, addMonths } from "@fluentui/react";
+import { DatePicker, DayOfWeek, Dropdown, IDropdownOption, IPersonaProps, Label, PrimaryButton, addDays, addMonths } from "@fluentui/react";
 import { ModernTaxonomyPicker } from "@pnp/spfx-controls-react";
 import { ITermInfo } from "@pnp/spfx-controls-react/node_modules/@pnp/sp/taxonomy/";
+import PeoplePickerComponent from "./PeoplePickerComponent";
+// import Services from "./helpers/Services";
 
 
 
 const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, onSubmit, context }) => {
   const currentDate = new Date();
+  // const services = new Services(context);
   const [formData, setFormData] = React.useState<IMemberForm>(
     initialData || {
       Title: '',
@@ -18,6 +21,7 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
       RequestArea: '',
       DueDate: addDays(currentDate,3),
       Tags: '',
+      AsignedManagerId: 0,
     });
 
     React.useEffect(() => {
@@ -112,6 +116,20 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
         }));
       }
     };
+    const handlePeoplePickerChange = async (manager: IPersonaProps[]) => {
+      const managerId = manager[0].key;
+      if (managerId === undefined || managerId === null) {
+        console.log("Invalid managerId:", managerId);
+        return;
+      }
+      const parsedManagerId = parseInt(managerId.toString(), 10);
+      await 
+      setFormData((prevData: IMemberForm) => ({
+        ...prevData,
+        AsignedManagerId: parsedManagerId,
+      }));
+      console.log('form data', formData);
+    };
 
   const stackTokens = { childrenGap: 50 };
   const stackStyles: Partial<IStackStyles> = { root: { width: 650 } };
@@ -164,6 +182,10 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
           context={context}
           onChange={onTaxPickerChange}
         />
+        <div>
+          <Label>Asigned Manager</Label>
+          <PeoplePickerComponent context={context} onChange={(manager)=>{handlePeoplePickerChange(manager)}}/>
+        </div>
       <PrimaryButton type="submit">{mode === 'create' ? 'Create' : 'Update'}</PrimaryButton>
       </Stack>
 

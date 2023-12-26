@@ -2,11 +2,7 @@ import { IMemberForm } from '../interfaces/interfaces';
 import Services from './Services';
 
 class FormDataManager extends Services {
-
-private LIST_NAME = 'Requests';
-  private async list() {
-    return await this._sp.web.lists.getByTitle(this.LIST_NAME);
-  }
+// private AsignedManagerIdField = this.findInternalName('AsignedManagerId');
 
 public async readAllFormData() {
   try {
@@ -50,6 +46,7 @@ public async readAllFormData() {
         RequestArea: formData.RequestArea,
         DueDate: dueDate,
         'n55b0e94a31948c0be73f8d6ffcf24ec0': formData.Tags,
+        AsignedManagerId: formData.AsignedManagerId,
       });
     } catch (error) {
       console.error('Error submitting form data to SharePoint:', error);
@@ -69,6 +66,7 @@ public async readAllFormData() {
         RequestTypeId: updatedFormData.RequestTypeId,
         DueDate: dueDate,
         'n55b0e94a31948c0be73f8d6ffcf24ec0': updatedFormData.Tags,
+        AsignedManagerId: updatedFormData.AsignedManagerId,
       });
 
       console.log('Form data updated in SharePoint:', itemToUpdate.data);
