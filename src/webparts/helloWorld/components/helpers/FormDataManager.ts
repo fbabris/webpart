@@ -1,10 +1,10 @@
-import { IMemberForm } from '../interfaces/interfaces';
+import { IMemberForm, IRequestList } from '../interfaces/interfaces';
 import Services from './Services';
 
 class FormDataManager extends Services {
 // private AsignedManagerIdField = this.findInternalName('AsignedManagerId');
 
-public async readAllFormData() {
+public async readAllFormData():Promise<Array<IRequestList>> {
   try {
     const list = await this.list();
     let items = await list.items();
@@ -12,11 +12,11 @@ public async readAllFormData() {
     console.log('is this manager', manager);
     if (!manager) {
         const userId = await this.getUserId();
-      items = items.filter((item) => item.AuthorId === userId);
+      items = items.filter((item:IRequestList) => item.AuthorId === userId);
       console.log('is this user a manager', manager, 'userId', userId)
     }    
     
-    return items.map((item) => ({
+    return items.map((item:IRequestList) => ({
     ID: item.ID,
     Title: item.Title,
     Description: item.Description,

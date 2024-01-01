@@ -2,48 +2,54 @@ import * as React from 'react';
 import { Modal, IconButton, mergeStyleSets, FontWeights } from '@fluentui/react/lib';
 import MemberForm from './MemberForm';
 import FormDataManager from './helpers/FormDataManager';
-import { ModalProps } from './interfaces/interfaces';
-import { useBoolean } from '@fluentui/react-hooks';
+import { IMemberForm, IUpdateHandler, ModalProps } from './interfaces/interfaces';
 import * as moment from 'moment';
 
 
 const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
 
-  const [isModalOpen, { setTrue: showModal, setFalse: hideModal }] = useBoolean(false);
-  const [formDataForUpdate, setFormDataForUpdate] = React.useState<any>(null);
+  const initialDataProps:IMemberForm = {
+    Title: '',
+    Description: '',
+    RequestTypeId: 0,
+    RequestArea: '',
+    DueDate: undefined,
+    ExecutionDate: undefined,
+    Tags: [],
+    Status:'', 
+    AsignedManagerId: 0,
+  }
+
+  const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
+  const [formDataForUpdate, setFormDataForUpdate] = React.useState<IMemberForm>(props.initialData?props.initialData:initialDataProps);
   const formDataManager = new FormDataManager(props.context);
+
+  
 
   React.useEffect(() => {
     if (props.mode === 'update' && props.initialData) {
       const { DueDate, ...restData } = props.initialData;
-  
-      // Convert DueDate from string to Date
-      const convertedDueDate = DueDate ? moment(DueDate).toDate() : undefined;
-  
+      const convertedDueDate = DueDate ? moment(DueDate).toDate() : undefined;  
       setFormDataForUpdate({
         ...restData,
         DueDate: convertedDueDate,
       });
-      showModal();
+      setIsModalOpen (true);
     } else {
-      setFormDataForUpdate(null);
-      showModal();
+      setFormDataForUpdate(initialDataProps);
+      setIsModalOpen(true);
     }
   }, [props.isModalOpen, props.mode, props.initialData]);
 
-  const handleCreate = (formData: any) => {
-    formDataManager.createFormData(formData);
-    console.log('Creating:', formData);
-    hideModal();
+  const handleCreate = async (formData: IMemberForm):Promise<void> => {
+    await formDataManager.createFormData(formData);
+    props.hideModal();
   };
 
-  const handleUpdate = (formData: any) => {
-    formDataManager.updateFormData(formData.ID, formData);    
-    console.log('Updating:', formData);
-    hideModal();
+  const handleUpdate = async (formData: IUpdateHandler):Promise<void> => {
+    await formDataManager.updateFormData(formData.ID, formData);    
+    props.hideModal();
   };
-
-  // const theme = getTheme;
 
   const contentStyles = mergeStyleSets({
     container: {
@@ -82,7 +88,7 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
       <Modal
         titleAriaId="modalHeader"
         isOpen={isModalOpen}
-        onDismiss={hideModal}
+        onDismiss={()=>props.hideModal()}
         isBlocking={false}
         containerClassName={contentStyles.container}
       >
@@ -91,7 +97,7 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
           <IconButton
             iconProps={{ iconName: 'Cancel' }}
             ariaLabel="Close popup modal"
-            onClick={hideModal}
+            onClick={props.hideModal}
           />
         </div>
         <div className={contentStyles.body} id="modalBody">

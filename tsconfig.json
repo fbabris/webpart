@@ -2,14 +2,10 @@
   "extends": "./node_modules/@microsoft/rush-stack-compiler-4.7/includes/tsconfig-web.json",
   "compilerOptions": {
     "target": "es2017",
-    // "target": "es5",
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
     "moduleResolution": "node",
     "baseUrl": "./",
-    // "paths": {
-    //   "@pnp/sp": ["node_modules/@pnp/sp/presets/all"]
-    // },
     "jsx": "react",
     "declaration": true,
     "sourceMap": true,

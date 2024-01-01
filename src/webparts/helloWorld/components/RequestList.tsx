@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { IMemberForm, IRequestList, IRequestTypes} from './interfaces/interfaces';
+import { IMemberForm, IRequestList, IRequestTypes, Tag} from './interfaces/interfaces';
 import ModalComponent from './ModalComponent';
 import {
   TableBody,
@@ -16,128 +16,138 @@ import 'office-ui-fabric-core/dist/css/fabric.min.css';
 import { PrimaryButton } from '@fluentui/react';
 import FormDataManager from './helpers/FormDataManager';
 import Services from './helpers/Services';
+import SearchForm from './SearchForm';
+import * as moment from 'moment';
 
 
 
 
 const RequestList: React.FC<IRequestList> = (props) => {
   const [requestItems, setRequestItems] = useState<IRequestList[]>([]);
-  const [selectedItem, setSelectedItem] = useState<IRequestList | null>(null);
+  const [selectedItem, setSelectedItem] = useState<IRequestList | undefined>(undefined);
   const [modalVisible, setModalVisible] = useState(false);
   const [usersArray, setUsersArray] = useState<{ [key: number]: string }> ({});
   const [requestTypes, setRequestTypes] = React.useState<IRequestTypes[]>([]);
   const [isUserManager, setIsUserManager] = useState<boolean>(false);
+  const [sortConfig, setSortConfig] = useState<{ column: string; direction: 'asc' | 'desc' }>({ column: 'Title', direction: 'asc' });
+  const [filteredRequestItems, setFilteredRequestItems] = useState<IRequestList[]>([]);
   const formDataManager = new FormDataManager(props.context);
   const services = new Services(props.context);
 
 
-    useEffect(() => {
-    const fetchDataAndUsers = async () => {
-      await fetchData();
-      await storeSiteUsers();
-      requestTypesArray();
-      // storeTaxonomyData();
-      const userIsManager = await services.userIsManager();
-      setIsUserManager(userIsManager);
-    };
-  
-    fetchDataAndUsers();
-  }, [props.context]);
 
-  const handleUpdate = (item: IRequestList) => {
+  const storeSiteUsers = async (): Promise<{ [key: number]: string }|undefined> => {
+    try {
+      const siteUserData = await services.getSiteUsers();
+      const usersData:{ [key: number]: string } = {};
+      for (const user of siteUserData) {
+        if (user.Id && user.Title) {
+          usersData[user.Id] = user.Title;
+        }
+      }
+      setUsersArray(usersData);
+      return usersArray;
+    } catch (error) {
+      console.error('Error fetching users data: ', error);
+      throw error;
+    }
+  }
+
+  const requestTypesArray = async ():Promise<IRequestTypes[]|undefined> => {
+    try {
+      const requestTypesData = await services.fetchRequestTypeData();
+      setRequestTypes(requestTypesData.map((requestTypeData) => ({
+        Id: requestTypeData.Id,
+        Title: requestTypeData.Title, 
+        DisplayOrder: requestTypeData.DisplayOrder,
+      })));
+      return requestTypesData;
+    } catch (error) {
+      console.error('Error fetching Request Types data: ', error);
+    }
+  }
+  
+  const handleUpdate = (item: IRequestList):void => {
     setSelectedItem(item);
+    setModalVisible(true);
+  }
+
+  const handleOpenCreateModal = ():void => {
+    setSelectedItem(undefined);
     setModalVisible(true);
   };
 
-  const handleDelete = (item: IRequestList) => {
+  const fetchAndSetData = async(): Promise<void> => {
+    try {
+      const items = await formDataManager.readAllFormData();
+      setRequestItems(items);
+      setFilteredRequestItems(items);
+      await storeSiteUsers();
+      await requestTypesArray();
+      const userIsManager = await services.userIsManager();
+      setIsUserManager(userIsManager);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }
+
+  const deleteItem = async (item: IRequestList):Promise<void> => {
+    try {
+      await formDataManager.deleteFormData(item.ID);
+      await fetchAndSetData();
+    } catch (error) {
+      console.error('Error handling delete:', error);
+    }
+  }
+
+  const handleDelete = (item: IRequestList):void => {
     const confirmed = window.confirm(`Are you sure you want to delete item "${item.Title}"?`);
   
     if (confirmed) {
       deleteItem(item);
     }
-  };
-  
-  
+  }
 
-  const handleModalClose = () => {
+  const handleModalClose = ():void => {
+    fetchAndSetData();
+    setSelectedItem(undefined);
     setModalVisible(false);
-    setSelectedItem(null);
-  };
+  }
 
-  const handleSave = async (updatedData: IMemberForm) => {
+  const handleSave = async (updatedData: IMemberForm):Promise<void> => {
     try {
         await formDataManager.updateFormData(selectedItem?.ID || 0, updatedData);
         handleModalClose();
-        fetchData();
+        
     } catch (error) {
         console.error('Error handling update:', error);
     }
-};
-
-const deleteItem = async (item: IRequestList) => {
-    try {
-      await formDataManager.deleteFormData(item.ID);
-      fetchData();
-    } catch (error) {
-      console.error('Error handling delete:', error);
-    }
-  };
-
-const handleOpenCreateModal = () => {
-  setSelectedItem(null);
-  setModalVisible(true);
-};
-
-const requestTypesArray = async () => {
-  try {
-    const requestTypesData = await services.fetchRequestTypeData();
-    setRequestTypes(requestTypesData.map((requestTypeData) => ({
-      Id: requestTypeData.Id,
-      Title: requestTypeData.Title, 
-      DisplayOrder: requestTypeData.DisplayOrder,
-    })));
-    console.log('request types', requestTypesData);
-    return requestTypesData;
-  } catch (error) {
-    console.error('Error fetching Request Types data: ', error);
   }
-};
 
-const fetchData = async () => {
-  try {
-    const items = await formDataManager.readAllFormData();
-    setRequestItems(items);
-    console.log('fetch items', items);
-    return requestItems;
-  } catch (error) {
-    console.error('Error fetching list data', error);
-  }
-};
+  useEffect(() => {    
+    fetchAndSetData();
+  }, [props.context]);
 
-// const storeTaxonomyData = async () => {
-//   try {
-//     const taxonomyData = await services.fetchTaxonomyData();
-//     console.log('Taxonomy Data:', taxonomyData);
-//   } catch (error) {
-//     console.error('Error fetching taxonomy data:', error);
-//   }
-// };
+const handleSort = (column: string):void => {
+  const newDirection = sortConfig.column === column && sortConfig.direction === 'asc' ? 'desc' : 'asc';
+  setSortConfig({ column, direction: newDirection });
 
-const storeSiteUsers = async () => {
-  try {
-    const siteUserData = await services.getSiteUsers();
-    const usersData:any = {};
-    for (const user of siteUserData) {
-      if (user.Id && user.Title) {
-        usersData[user.Id] = user.Title;
-      }
+  const sortedData = [...filteredRequestItems].sort((a, b) => {
+    const aValue = a[column];
+    const bValue = b[column];
+
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return newDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+    } else if (aValue instanceof Date && bValue instanceof Date) {
+      return newDirection === 'asc' ? aValue.getTime() - bValue.getTime() : bValue.getTime() - aValue.getTime();
     }
-    setUsersArray(usersData);
-    return usersArray;
-  } catch (error) {
-    console.error('Error fetching users data: ', error);
-  };
+
+    return 0;
+  });
+  setFilteredRequestItems(sortedData);
 }
+
+
 
 const gridClasses = {
   regular: 'ms-Grid-col ms-sm4 ms-md2 ms-lg2',
@@ -162,7 +172,53 @@ const columns = [
   { key: 'EditDelete', fieldName: '', className:gridClasses.small1},
 ];
 
+const searchFormSubmit = (searchArray: IMemberForm): void => {
+  let filteredItems = [...requestItems];
+
+  for (const [key, value] of Object.entries(searchArray)) {
+    if (value !== undefined) {
+      if (key === 'Title' && value!=="") {
+        filteredItems = filteredItems.filter((item) => item.Title.toLowerCase().includes(value.toLowerCase())
+        );
+      } else if (key === 'RequestTypeId' && value !== 0) {
+        filteredItems = filteredItems.filter((item) => item.RequestTypeId === value);
+      } else if (key === 'AsignedManagerId' && value !== 0){
+        filteredItems = filteredItems.filter((item)=> item.AsignedManagerId === value);
+      } else if (key === 'Status' && value !== ""){
+        filteredItems = filteredItems.filter((item)=> item.Status === value);
+      } else if (key === 'DueDate' && value !== undefined){
+        filteredItems = filteredItems.filter((item) => {
+          const dueDate = moment(item.DueDate).toDate(); 
+          if(dueDate && dueDate instanceof Date) { 
+            return dueDate >= value;
+          }          
+          return false;
+        });
+      } else if (key === 'DueDateEnd' && value !== undefined){
+        filteredItems = filteredItems.filter((item) => {
+            const dueDateEnd = moment(item.DueDate).toDate(); 
+            if(dueDateEnd && dueDateEnd instanceof Date) { 
+              return dueDateEnd <= value;
+            }          
+            return false;
+          });
+      }
+      // Add more conditions for other fields as needed
+    }
+  }
+
+  setFilteredRequestItems(filteredItems);
+  console.log('found', filteredItems);
+}
+
   return (
+
+    <>
+    <SearchForm 
+      requestTypes={requestTypes}
+      context={props.context}
+      onSubmit={searchFormSubmit}
+    />
     <div className="ms-Grid">
       <h2>Request List:</h2>
         <Table sortable aria-label="Table with sort" >
@@ -170,15 +226,23 @@ const columns = [
         <TableHeader>
           <TableRow className="ms-Grid-row">
             {columns.map((column) => (
-              <TableHeaderCell key={column.key} className={column.className}>
-                {column.fieldName}
+              <TableHeaderCell 
+              key={column.key}
+              className={column.className}
+              onClick={() => handleSort(column.fieldName)}
+              aria-sort={sortConfig.column === column.fieldName ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+            >
+              {column.fieldName}
+                {sortConfig.column === column.fieldName && (
+                  <span className={`ms-Icon ${sortConfig.direction === 'asc' ? 'ms-Icon--SortUp' : 'ms-Icon--SortDown'}`} />
+                )}
               </TableHeaderCell>
             ))}
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {requestItems.map((item) => (
+          {(filteredRequestItems).map((item) => (
             <TableRow className="ms-Grid-row" key={item.ID}>
               <TableCell className={gridClasses.regular} >{item.Title}</TableCell>
               {/* <TableCell className={gridClasses.hid} >{item.Description}</TableCell> */}
@@ -188,17 +252,23 @@ const columns = [
               <TableCell className={gridClasses.large2}>{item.RequestArea}</TableCell>
               <TableCell className={gridClasses.regular}>{usersArray[item.AsignedManagerId]}</TableCell>
               <TableCell className={gridClasses.large2}>
-                {item.Tags.map((tag:any, index:number) => (
+                {item.Tags.map((tag:Tag, index:number) => (
                 <span key={index}>{tag.Label} </span>
               ))}
               </TableCell>
               <TableCell className={gridClasses.small2}>{item.Status}</TableCell>
-              {item.Status === 'New' && (
-              <div className={gridClasses.small1}>
-                <TableCell ><Button icon={<EditIcon/>} onClick={() => handleUpdate(item)}></Button></TableCell>
-                <TableCell><Button icon={<DeleteIcon />} onClick={() => handleDelete(item)}></Button></TableCell>              
-                </div>
-              )}           
+              {
+                item.Status === 'New' ? (
+                  <div className={gridClasses.small1}>
+                    <TableCell>
+                      <Button icon={<EditIcon />} onClick={() => handleUpdate(item)} />
+                    </TableCell>
+                    <TableCell>
+                      <Button icon={<DeleteIcon />} onClick={() => handleDelete(item)} />
+                    </TableCell>
+                  </div>
+                ) : null
+              }      
             </TableRow>
           ))}
         </TableBody>
@@ -219,6 +289,7 @@ const columns = [
         />
       )}
     </div>
+    </>
     );
 };
 

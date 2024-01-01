@@ -1,17 +1,13 @@
 import * as React from "react";
-import { IMemberForm, IMemberFormFc} from './interfaces/interfaces';
+import { IMemberForm, IMemberFormFc, Tag} from './interfaces/interfaces';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { Stack, IStackStyles } from '@fluentui/react/lib/Stack';
 import { DatePicker, DayOfWeek, Dropdown, IDropdownOption, IPersonaProps, Label, PrimaryButton, addDays, addMonths } from "@fluentui/react";
 import { ModernTaxonomyPicker } from "@pnp/spfx-controls-react";
 import { ITermInfo } from "@pnp/spfx-controls-react/node_modules/@pnp/sp/taxonomy/";
 import PeoplePickerComponent from "./PeoplePickerComponent";
-// import Services from "./helpers/Services";
-
-
 
 const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, onSubmit, context, userIsManager }) => {
-  // const services = new Services(context);
   const currentDate = new Date();
   const [formData, setFormData] = React.useState<IMemberForm>(
     initialData || {
@@ -20,142 +16,29 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
       RequestTypeId: 0,
       RequestArea: '',
       DueDate: addDays(currentDate,3),
+      ExecutionDate: undefined,
       Tags: '',
+      Status: '',
       AsignedManagerId: 0,
     });
 
     const [hasTags, setHasTags] = React.useState<boolean>(false);
-    const [isLoading, setIsLoading] = React.useState(true);
-
-    const fetchData = async () => {
-      if (initialData) {
-        console.log('Initial Data:', initialData);
-        
-  
-        if (initialData.Tags && initialData.Tags.length > 0) {
-          console.log('Has Tags: true');
-          setHasTags(true);
-             
-          try {
-            const initialTagsArray = initialData.Tags.map((tag:any) => ({
-              id: tag.TermGuid,
-              labels:
-                [{
-                  name: tag.Label,
-                  isDefault: true,
-                  languageTag: 'en-US',
-                }],
-            })); 
-            console.log(initialTagsArray);   
-            setFormData((prevData) => ({
-              ...prevData,
-              Tags: initialTagsArray,
-            }));
-          } catch (error) {
-            console.error('Error fetching tags:', error);
-          } finally {
-            setHasTags(true);
-            setIsLoading(false);
-          }
-        } else {
-          console.log('Has Tags: false');
-          setHasTags(false);
-          setFormData(initialData);
-          setIsLoading(false);
-        }
-      }
-    };
+    const [isLoading, setIsLoading] = React.useState(true);  
     
-    React.useEffect(() => {
-         
-      fetchData();
-    }, [initialData]);
+    const options: IDropdownOption[] = [
+      { key: 'IT', text: 'IT' },
+      { key: 'Sales', text: 'Sales' },
+      { key: 'Project Management', text: 'Project Management' },
+      { key: 'HR', text: 'HR' },
+      { key: 'Finance and Accounting', text: 'Finance and Accounting' },
+      { key: 'Marketing', text: 'Marketing' },
+      { key: 'R&D', text: 'R&D' },
+    ];
 
-    // React.useEffect(() => {
-    //   const fetchData = async () => {
-    //     if (initialData) {
-    //       if(initialData.Tags && initialData.Tags.length>0){
-    //         const mappedTags = initialData.Tags.map((tag: { Label: string; TermGuid: string; }) => ({
-    //         name: tag.Label,
-    //         id: tag.TermGuid            
-    //       }));
-    //       const updatedData = {
-    //           ...initialData,
-    //           Tags: mappedTags
-    //         };          
-    //       setFormData(updatedData);
-    //       }else{
-    //         setFormData(initialData);
-    //       }
-
-    //     }        
-    //   };
-  
-    //   fetchData();
-    // }, [initialData]);
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-      const { name, value } = e.target;
-      setFormData((prevData: IMemberForm) => ({ ...prevData, [name]: value }));
-    };
-
-    const handleTextFieldChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string | undefined): void => {
-      handleChange(event as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>);
-    };
-
-    const handleRequestAreaChange = (
-      event: React.FormEvent<HTMLDivElement>,
-      option?: IDropdownOption<any>,
-      index?: number | undefined
-    ) => {
-      if (option) {
-        const { key } = option;
-        setFormData((prevData: IMemberForm) => ({
-          ...prevData,
-          RequestArea: key as string,
-        }));
-      }
-    };
-
-    const handleRequestTypeChange = (
-      event: React.FormEvent<HTMLDivElement>,
-      option?: IDropdownOption<any>,
-      index?: number | undefined
-    ) => {
-      if (option) {
-        const { text } = option;
-        const requestId = getRequestTypeId(text);
-        setFormData((prevData: IMemberForm) => ({
-          ...prevData,
-          RequestTypeId: requestId !== undefined ? requestId : 0, // Set to 0 if requestId is undefined
-        }));
-      }
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  const options: IDropdownOption[] = [
-    { key: 'IT', text: 'IT' },
-    { key: 'Sales', text: 'Sales' },
-    { key: 'Project Management', text: 'Project Management' },
-    { key: 'HR', text: 'HR' },
-    { key: 'Finance and Accounting', text: 'Finance and Accounting' },
-    { key: 'Marketing', text: 'Marketing' },
-    { key: 'R&D', text: 'R&D' },
-  ];
-
-  const requestTypeOptions: IDropdownOption[] = requestTypes.map((option) => ({
+    const requestTypeOptions: IDropdownOption[] = requestTypes.map((option) => ({
       key: option.Title,
       text: option.Title,
     }));
-
-    const handleDatePickerChange = (date: Date | null | undefined): void => {
-      if (date) {
-        setFormData((prevData: IMemberForm) => ({ ...prevData, DueDate: date }));
-      }
-    };
 
     const getRequestTypeId = (requestType: string): number | undefined => {
       const foundType = requestTypes.find((type) => type.Title === requestType);
@@ -167,7 +50,90 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
       return foundTypeId?.Title;
     }
 
-    const onTaxPickerChange = (terms: ITermInfo[]) => {
+    const fetchData = (): void => {
+      if (initialData) {        
+  
+        if (initialData.Tags && initialData.Tags.length > 0) {
+          setHasTags(true);
+             
+          try {
+            const initialTagsArray = initialData.Tags.map((tag:Tag) => ({
+              id: tag.TermGuid,
+              labels:
+                [{
+                  name: tag.Label,
+                  isDefault: true,
+                  languageTag: 'en-US',
+                }],
+            })); 
+             
+            setFormData((prevData) => ({
+              ...prevData,
+              Tags: initialTagsArray,
+            }));
+          } catch (error) {
+            console.error('Error fetching tags:', error);
+          } finally {
+            setHasTags(true);
+            setIsLoading(false);
+          }
+        } else {
+          setHasTags(false);
+          setFormData(initialData);
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    React.useEffect(() => {
+      fetchData();
+    }, [initialData]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>):void => {
+      const { name, value } = e.target;
+      setFormData((prevData: IMemberForm) => ({ ...prevData, [name]: value }));
+    };
+
+    const handleTextFieldChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string | undefined): void => {
+      handleChange(event as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>);
+    };
+
+    const handleRequestAreaChange = (
+      event: React.FormEvent<HTMLDivElement>,
+      option?: IDropdownOption<{key:string, text:string}>,
+      index?: number | undefined
+    ):void => {
+      if (option) {
+        const { key } = option;
+        setFormData((prevData: IMemberForm) => ({
+          ...prevData,
+          RequestArea: key as string,
+        }));
+      }
+    };
+
+    const handleRequestTypeChange = (
+      event: React.FormEvent<HTMLDivElement>,
+      option?: IDropdownOption<{key:string, text:string}>,
+      index?: number | undefined
+    ): void => {
+      if (option) {
+        const { text } = option;
+        const requestId = getRequestTypeId(text);
+        setFormData((prevData: IMemberForm) => ({
+          ...prevData,
+          RequestTypeId: requestId !== undefined ? requestId : 0,
+        }));
+      }
+    };
+
+    const handleDatePickerChange = (date: Date | null | undefined): void => {
+      if (date) {
+        setFormData((prevData: IMemberForm) => ({ ...prevData, DueDate: date }));
+      }
+    };
+
+    const onTaxPickerChange = (terms: ITermInfo[]):void => {
       if (terms) {
         setFormData((prevData: IMemberForm) => ({
           ...prevData,
@@ -176,18 +142,24 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
         console.log('tags', terms);
       }
     };
-    const handlePeoplePickerChange = async (manager: IPersonaProps[]) => {
-      const managerId = manager[0].key;
+
+    const handlePeoplePickerChange = (manager: IPersonaProps[]):void => {
+      const managerId = manager[0].key; 
       if (managerId === undefined || managerId === null) {
         console.log("Invalid managerId:", managerId);
         return;
       }
       const parsedManagerId = parseInt(managerId.toString(), 10);
-      await setFormData((prevData: IMemberForm) => ({
+      setFormData((prevData: IMemberForm) => ({
         ...prevData,
         AsignedManagerId: parsedManagerId,
       }));
     };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>):Promise<void> => {
+    e.preventDefault();
+    await onSubmit(formData);
+  };
 
   const stackTokens = { childrenGap: 50 };
   const stackStyles: Partial<IStackStyles> = { root: { width: 650 } };
@@ -205,7 +177,6 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
         label="Request Area"
         options={options}
         selectedKey={formData.RequestArea}
-        // styles={dropdownStyles}
         />
         <Dropdown
         id="RequestType"
@@ -215,7 +186,6 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
         label="Request Type"
         options={requestTypeOptions}
         selectedKey={getRequestTypeFromId(formData.RequestTypeId)}
-        // styles={dropdownStyles}
         />
         <DatePicker
           onSelectDate={(date) => handleDatePickerChange(date)}
@@ -246,7 +216,12 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
         )}
         <div>
           <Label>Asigned Manager</Label>
-          <PeoplePickerComponent context={context} onChange={(manager)=>{handlePeoplePickerChange(manager)}} userIsManager={userIsManager} AsignedManagerId={formData.AsignedManagerId}/>
+          <PeoplePickerComponent 
+            context={context} 
+            onChange={(manager)=>{handlePeoplePickerChange(manager)}} 
+            userIsManager={userIsManager} 
+            AsignedManagerId={formData.AsignedManagerId}
+          />
         </div>
       <PrimaryButton type="submit">{mode === 'create' ? 'Create' : 'Update'}</PrimaryButton>
       </Stack>

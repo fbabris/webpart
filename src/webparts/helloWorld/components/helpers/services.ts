@@ -1,14 +1,15 @@
-  import { SPFI } from '@pnp/sp';
-  import { getSP } from '../../../../pnpjsConfig';
-  // import { PnPClientStorage, dateAdd } from "@pnp/core";
-  import * as moment from 'moment';
+import { SPFI } from '@pnp/sp';
+import { getSP } from '../../../../pnpjsConfig';
+import * as moment from 'moment';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
+import { ISiteUser, ISiteUserInfo } from '@pnp/sp/site-users/types';
+import { IRequestTypes, Tag } from '../interfaces/interfaces';
   
   class Services {
 
     protected _sp: SPFI;
     protected LIST_NAME = 'Requests';
-    protected async list() {
+    protected async list(): Promise<any>{
       return await this._sp.web.lists.getByTitle(this.LIST_NAME);
     }
     
@@ -18,20 +19,20 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
       }
     }
 
-    public async  fetchTagsById(tag:any){
-      this._sp.termStore.searchTerm({
+    public async fetchTagsById(tag:Tag):Promise<any>{
+      await this._sp.termStore.searchTerm({
       label: tag.Label,
       setId: "dc544f14-4bee-4bef-9ce6-b36622cb704b",
     });
     return tag;
   }
 
-    protected tagsFormater(tags:any){
-      const tagsString = tags.map((tag:any):string => `${tag.labels[0].name}|${tag.id}`).join(";");
-      return tagsString;
-    }
+  protected tagsFormater(tags:Tag[]):string{
+    const tagsString = tags.map((tag:Tag):string => `${tag.labels[0].name}|${tag.id}`).join(";");
+    return tagsString;
+  }
 
-    public formattedDate(dateString:Date|undefined) {
+    public formattedDate(dateString:Date|undefined):string {
       if (dateString) {
         const date = moment(dateString);
         if (date.isValid()) {
@@ -41,7 +42,7 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
       return 'N/A';
     }
   
-    public async fetchRequestTypeData() {
+    public async fetchRequestTypeData():Promise<IRequestTypes[]> {
       try {
         const items = await this._sp.web.lists.getByTitle('Request Type').items();
         return items.map((item) => ({
@@ -55,25 +56,8 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
         throw error;
       }
     }
-  
-    // public async fetchTaxonomyData() {
-    //   try {
-    //     const store = new PnPClientStorage();
-    //     const cachedData = await store.local.getOrPut("taxonomyData", async () => {
-    //       const termStoreId = "944ad0e3-dae2-4ffb-88bc-ba2455ab6cc5";
-    //       const termSetId = "dc544f14-4bee-4bef-9ce6-b36622cb704b";
-    //       const termSet = this._sp.termStore.groups.getById(termStoreId).sets.getById(termSetId);
-    //       const termSetData = await termSet.getAllChildrenAsOrderedTree();
-    //       return termSetData;
-    //     }, dateAdd(new Date(), "minute", 30));
-    //     return cachedData;
-    //   } catch (error) {
-    //     console.error('Error fetching taxonomy data:', error);
-    //     throw error;
-    //   }
-    // }
-  
-    public async getSiteUsers() {
+
+    public async getSiteUsers():Promise<ISiteUserInfo[]> {
       try {
         const siteUsers = await this._sp.web.siteUsers();
         console.log('site users', siteUsers);
@@ -84,7 +68,7 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
       }
     }
 
-    public async getUserById(Id:number) {
+    public async getUserById(Id:number):Promise<ISiteUserInfo> {
       try{
         const userById = await this._sp.web.getUserById(Id)();
         return userById;
@@ -94,55 +78,48 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
       }
     }
 
-    public async userIsManager () {
+    public async userIsManager ():Promise<boolean> {
       const groups = await this._sp.web.currentUser.groups();
-      // this.getSiteUserById(9); 
       return groups[0].Title === 'Request Managers';
     }
 
-    public async getUserId() {
+    public async getUserId():Promise<number> {
       const userId = await this._sp.web.currentUser();
       return userId.Id;
     }
 
-    public async getManagers() {
+    public async getManagers():Promise<ISiteUserInfo[]>{
       const managersGroupId = (await this._sp.web.siteGroups.getByName('Request Managers')()).Id;
       const managersGroupUsers = await this._sp.web.siteGroups.getById(managersGroupId).users();
       return managersGroupUsers;
     }
 
-    public async getCurrentUser() {
+    public async getCurrentUser(): Promise<ISiteUserInfo|undefined> {
       const currentUser = await this._sp.web.currentUser();
       return currentUser;
     }
 
-    public async getUserByEmail(userEmail:string|undefined) {
+    public async getUserByEmail(userEmail:string|undefined):Promise<ISiteUser|undefined> {
       if (userEmail){
         try{
           const userFromEmail = await this._sp.web.siteUsers.getByEmail(userEmail);
           return userFromEmail;
         } catch(error) {
         console.error(error);
-      };
+      }
     }
   }
 
-  public async findInternalName(fieldDisplayName: string): Promise<string | null> {
+  public async findInternalName(fieldDisplayName: string): Promise<string | undefined> {
     try {
       const list = await this.list();
-      const field = await list.fields.getByTitle(fieldDisplayName)();
-      return field.InternalName || null;
+      const field = await list.fields.getByInternalNameOrTitle(fieldDisplayName)();
+      return field.InternalName || undefined;
     } catch (error) {
       console.error("Error finding internal name:", error);
-      return null;
+      return undefined;
     }
   }
-
-    // public async getSiteUserById(Id:number) {
-    //   const user = await this._sp.web.siteUsers.getById(Id)();
-    //   console.log('user', user);
-    //   return true;
-    // }
 
   }
   

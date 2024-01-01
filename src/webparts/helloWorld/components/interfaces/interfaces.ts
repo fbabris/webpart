@@ -1,15 +1,27 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { ITaxonomyLocalProperty } from "@pnp/sp/taxonomy";
 // import { ITermInfo } from "@pnp/spfx-controls-react/node_modules/@pnp/sp/taxonomy/";
+export interface Tag {
+  Label: string;
+  TermGuid: string;
+  id: string;
+  labels: {
+    name: string;
+    isDefault: boolean;
+    languageTag: string;
+  }[];
+}
 export interface IMemberForm {
     Title: string;
-    Description: string;
+    Description?: string;
     RequestTypeId: number; 
     RequestArea: string|number;
     DueDate: Date | undefined;
+    ExecutionDate: Date | undefined;
+    Status: string;
     Tags: string | any;
     AsignedManagerId: number; 
-};
+}
 
 export interface IRequestList {
     ID: number;
@@ -23,6 +35,7 @@ export interface IRequestList {
     Tags: any;
     Status: string;
     context: WebPartContext;
+    [key: string]:any;
 }
 
 export interface IHelloWorldProps {
@@ -36,9 +49,9 @@ export interface IHelloWorldProps {
   }
 
   export interface ModalProps {
-    requestTypes: Array<{Id: number; Title:string; DisplayOrder:string}>
+    requestTypes: Array<IRequestTypes>
     mode: 'create' | 'update';
-    initialData?: IMemberForm | null;
+    initialData?: IMemberForm | undefined;
     onSubmit: (formData: IMemberForm) => void;
     isModalOpen: boolean;
     hideModal: () => void;
@@ -53,12 +66,12 @@ export interface IHelloWorldProps {
   }
 
   export interface IMemberFormFc{
-    requestTypes: Array<{Id:number; Title: string; DisplayOrder: string }>;
-    mode: 'create' | 'update';
-    initialData?: IMemberForm | null;
+    requestTypes: Array<IRequestTypes>;
+    mode?: 'create' | 'update';
+    initialData?: IMemberForm | undefined;
     onSubmit: (formData: IMemberForm) => void;
-    context?: any;
-    userIsManager: boolean;
+    context: any;
+    userIsManager?: boolean;
   }
 
   export interface CustomTermInfo {
@@ -67,4 +80,13 @@ export interface IHelloWorldProps {
     path: string;
     termSet: string;
     localProperties: ITaxonomyLocalProperty[];
+  }
+
+  export interface IUpdateHandler extends IMemberForm{
+    ID: number;
+  }
+
+  export interface ISearchForm extends IMemberForm{
+    DueDateEnd: Date | undefined;
+    ExecutionDateEnd: Date | undefined;
   }
