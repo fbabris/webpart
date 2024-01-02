@@ -3,7 +3,6 @@ import { DatePicker, DefaultButton, Dropdown, IDropdownOption, IPersonaProps, La
 import { IMemberFormFc, ISearchForm } from "./interfaces/interfaces";
 import PeoplePickerComponent from "./PeoplePickerComponent";
 import { ModernTaxonomyPicker } from "@pnp/spfx-controls-react";
-// import { ITermInfo } from "@pnp/spfx-controls-react/node_modules/@pnp/sp/taxonomy/";
 import 'office-ui-fabric-core/dist/css/fabric.min.css';
 
 const SearchForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, onSubmit, context }) => {
@@ -55,7 +54,6 @@ const SearchForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
     const handleManagerChange = (name: keyof ISearchForm, manager: IPersonaProps[]):void => {
         const managerId = manager.length>0 ? manager[0].key : undefined; 
         if (managerId === undefined || managerId === null) {
-          console.log("Invalid managerId:", managerId);
           return;
         }
         const parsedManagerId = parseInt(managerId.toString(), 10);
@@ -88,7 +86,6 @@ const SearchForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
 
     React.useEffect(() => {
         onSubmit(formData);
-        console.log(formData);
     }, [formData]);
 
     const handleClearSearch = ():void => {

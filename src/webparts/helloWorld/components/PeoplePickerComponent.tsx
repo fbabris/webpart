@@ -39,37 +39,41 @@ const PeoplePickerComponent: React.FC<PeoplePickerComponentProps> = ({context, o
 
   const fetchData = async ():Promise<void> => {
     try {
-      if(AsignedManagerId){await fetchAsignedManager(AsignedManagerId)}
+      if(AsignedManagerId && AsignedManagerId !== 0){await fetchAsignedManager(AsignedManagerId)}else{
+        setIsLoading(true);
+        setSelectedItems([]);
+      }
       await fetchManagers();
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   React.useEffect(() => {      
     fetchData();
   }, [context, AsignedManagerId]);
 
-  const initialSuggestedPeople = managers.length > 0 ? [...managers.slice(0, 5)] : [];
+  const initialSuggestedPeople = managers.length > 0 ? [...managers.slice(0, 3)] : [];
+
 
 
   const onResolveSuggestions = (filterText: string, currentPersonas: IPersonaProps[]): IPersonaProps[] => {
-    return initialSuggestedPeople;
+    return filterText !== '' ? managers
+      .filter(persona => persona.text && persona.text.toLowerCase().includes(filterText.toLowerCase()))
+      .slice(0, 3) : initialSuggestedPeople;
   };
     
   return(
     <div>
       {!isLoading ? (<CompactPeoplePicker
         disabled={!userIsManager}
-        onResolveSuggestions={onResolveSuggestions}
+        onResolveSuggestions={(filterText)=>onResolveSuggestions(filterText !== '' ? filterText : '', [])}
         onChange={onChange}
         defaultSelectedItems={selectedItems}
         itemLimit={1}
         inputProps={{
-          onBlur: (ev: React.FocusEvent<HTMLInputElement>) => console.log('onBlur called'),
-          onFocus: (ev: React.FocusEvent<HTMLInputElement>) => console.log('onFocus called'),
           'aria-label': 'People Picker',
         }}
       />):(<p>loading...</p>)}

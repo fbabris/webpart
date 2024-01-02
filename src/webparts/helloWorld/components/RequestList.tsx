@@ -232,7 +232,6 @@ const searchFormSubmit = (searchArray: IMemberForm): void => {
   }
 
   setFilteredRequestItems(filteredItems);
-  console.log('found', filteredItems);
 }
 
   return (

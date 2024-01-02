@@ -139,14 +139,12 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
           ...prevData,
           Tags: terms,
         }));
-        console.log('tags', terms);
       }
     };
 
     const handlePeoplePickerChange = (manager: IPersonaProps[]):void => {
       const managerId = manager[0].key; 
       if (managerId === undefined || managerId === null) {
-        console.log("Invalid managerId:", managerId);
         return;
       }
       const parsedManagerId = parseInt(managerId.toString(), 10);
