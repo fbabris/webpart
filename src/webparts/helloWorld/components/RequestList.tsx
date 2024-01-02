@@ -18,6 +18,7 @@ import FormDataManager from './helpers/FormDataManager';
 import Services from './helpers/Services';
 import SearchForm from './SearchForm';
 import * as moment from 'moment';
+import { ITermInfo } from "@pnp/spfx-controls-react/node_modules/@pnp/sp/taxonomy/";
 
 
 
@@ -196,14 +197,37 @@ const searchFormSubmit = (searchArray: IMemberForm): void => {
         });
       } else if (key === 'DueDateEnd' && value !== undefined){
         filteredItems = filteredItems.filter((item) => {
-            const dueDateEnd = moment(item.DueDate).toDate(); 
-            if(dueDateEnd && dueDateEnd instanceof Date) { 
-              return dueDateEnd <= value;
-            }          
-            return false;
-          });
+          const dueDateEnd = moment(item.DueDate).toDate(); 
+          if(dueDateEnd && dueDateEnd instanceof Date) { 
+            return dueDateEnd <= value;
+          }          
+          return false;
+        });
+      }else if (key === 'ExecutionDate' && value !== undefined){
+        filteredItems = filteredItems.filter((item) => {
+          const executionDate = moment(item.ExecutionDate).toDate(); 
+          if(executionDate && executionDate instanceof Date) { 
+            return executionDate >= value;
+          }          
+          return false;
+        });
+      } else if (key === 'ExecutionDateEnd' && value !== undefined){
+        filteredItems = filteredItems.filter((item) => {
+          const executionDateEnd = moment(item.ExecutionDate).toDate(); 
+          if(executionDateEnd && executionDateEnd instanceof Date) { 
+            return executionDateEnd <= value;
+          }          
+          return false;
+        });
+      } else if (key === 'Tags' && value.length>0){
+        const labelNames = value.map((term:ITermInfo) => (term.labels.length > 0 ? term.labels[0].name : ''));
+        filteredItems = filteredItems.filter((item) => {
+          const itemLabelNames = item.Tags.map((tag: Tag) => tag.Label)
+          return labelNames.every((labelName:string) => itemLabelNames.includes(labelName));
+        });
+      } else if (key === 'RequestArea' && value !== ''){
+        filteredItems = filteredItems.filter((item)=> item.RequestArea === value);
       }
-      // Add more conditions for other fields as needed
     }
   }
 

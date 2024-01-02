@@ -189,7 +189,8 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
         />
         <DatePicker
           onSelectDate={(date) => handleDatePickerChange(date)}
-          isRequired
+          isRequired={!userIsManager}
+          disabled={userIsManager}
           label="Due Date"
           placeholder="Select a date..."
           ariaLabel="Select a date"
