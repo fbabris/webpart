@@ -6,6 +6,7 @@ import { DatePicker, DayOfWeek, Dropdown, IDropdownOption, IPersonaProps, Label,
 import { ModernTaxonomyPicker } from "@pnp/spfx-controls-react";
 import { ITermInfo } from "@pnp/spfx-controls-react/node_modules/@pnp/sp/taxonomy/";
 import PeoplePickerComponent from "./PeoplePickerComponent";
+import Services from "./helpers/Services";
 
 const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, onSubmit, context, userIsManager }) => {
   const currentDate = new Date();
@@ -24,6 +25,7 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
 
     const [hasTags, setHasTags] = React.useState<boolean>(false);
     const [isLoading, setIsLoading] = React.useState(true);  
+    const services = new Services;
     
     const options: IDropdownOption[] = [
       { key: 'IT', text: 'IT' },
@@ -154,10 +156,30 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
       }));
     };
 
+  const handleSendSubmit = async (e: React.MouseEvent<HTMLButtonElement>): Promise<void> => {
+    e.preventDefault(); // Prevent the default form submission behavior
+    try {
+      const updatedFormData: IMemberForm = {
+        ...formData,
+        Status: 'In Progress',
+      };
+  
+      setFormData(updatedFormData);
+
+      console.log('Form data submitted for update:', updatedFormData);
+       
+      await onSubmit(updatedFormData);
+  
+      
+    } catch (error) {
+      console.error('Error updating form data:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>):Promise<void> => {
     e.preventDefault();
     await onSubmit(formData);
-  };
+  }
 
   const stackTokens = { childrenGap: 50 };
   const stackStyles: Partial<IStackStyles> = { root: { width: 650 } };
@@ -222,7 +244,16 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
             AsignedManagerId={formData.AsignedManagerId}
           />
         </div>
-      <PrimaryButton type="submit">{mode === 'create' ? 'Create' : 'Update'}</PrimaryButton>
+        <TextField label="Status" disabled name="Status" value={formData.Status}/>
+        <TextField label="Execution Date" name="Title" value={services.formattedDate(formData.ExecutionDate)} disabled/>
+      {formData.Status === 'New' && <div>
+        <PrimaryButton type="submit">{mode === 'create' ? 'Create' : 'Update'}</PrimaryButton>
+        {userIsManager && (
+          <PrimaryButton onClick={async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => await handleSendSubmit(e)}>
+            Send Request to the Supply Department
+          </PrimaryButton>        
+        )}
+      </div>}
       </Stack>
 
     </form>

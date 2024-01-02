@@ -93,7 +93,10 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
         containerClassName={contentStyles.container}
       >
         <div className={contentStyles.header}>          
-          <h2 className={contentStyles.heading} id="modalHeader">{props.mode === 'create' ? 'Create a New' : 'Update the'} Request </h2>
+          {props.initialData && props.initialData.Status === 'New' ? 
+            <h2 className={contentStyles.heading} id="modalHeader">{props.mode === 'create' ? 'Create a New' : 'Update the'} Request </h2> : 
+            <h2 className={contentStyles.heading} id="modalHeader">Request: {formDataForUpdate.Title}</h2>
+          }
           <IconButton
             iconProps={{ iconName: 'Cancel' }}
             ariaLabel="Close popup modal"

@@ -266,7 +266,7 @@ const searchFormSubmit = (searchArray: IMemberForm): void => {
 
         <TableBody>
           {(filteredRequestItems).map((item) => (
-            <TableRow className="ms-Grid-row" key={item.ID}>
+            <TableRow className="ms-Grid-row" key={item.ID} onClick={() => handleUpdate(item)}>
               <TableCell className={gridClasses.regular} >{item.Title}</TableCell>
               {/* <TableCell className={gridClasses.hid} >{item.Description}</TableCell> */}
               <TableCell className={gridClasses.mid3} >{services.formattedDate(item.DueDate)}</TableCell>

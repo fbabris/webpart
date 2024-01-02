@@ -60,7 +60,6 @@ import { IRequestTypes, Tag } from '../interfaces/interfaces';
     public async getSiteUsers():Promise<ISiteUserInfo[]> {
       try {
         const siteUsers = await this._sp.web.siteUsers();
-        console.log('site users', siteUsers);
         return siteUsers;
       } catch (error) {
         console.error('Error fetching users data', error);
