@@ -4,7 +4,7 @@ import MemberForm from './MemberForm';
 import FormDataManager from './helpers/FormDataManager';
 import { IMemberForm, IUpdateHandler, ModalProps } from './interfaces/interfaces';
 import * as moment from 'moment';
-
+import Services from './helpers/Services';
 
 const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
 
@@ -23,11 +23,12 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
   const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
   const [formDataForUpdate, setFormDataForUpdate] = React.useState<IMemberForm>(props.initialData?props.initialData:initialDataProps);
   const formDataManager = new FormDataManager(props.context);
+  const services = new Services;
 
   
 
   React.useEffect(() => {
-    if (props.mode === 'update' && props.initialData) {
+    if (props.mode !== 'create' && props.initialData) {
       const { DueDate, ...restData } = props.initialData;
       const convertedDueDate = DueDate ? moment(DueDate).toDate() : undefined;  
       setFormDataForUpdate({
@@ -53,6 +54,7 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
 
   const contentStyles = mergeStyleSets({
     container: {
+      backgroundColor: services.colorCode(props.initialData? props.initialData.Status : ""),
       display: 'flex',
       flexFlow: 'column nowrap',
       alignItems: 'stretch',

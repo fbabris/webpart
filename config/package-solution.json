@@ -27,8 +27,8 @@
     },
     "features": [
       {
-        "title": "my-first-web-part Feature",
-        "description": "The feature that activates elements of the my-first-web-part solution.",
+        "title": "Supply Department webpart",
+        "description": "The webpart for making requests to the delivery department",
         "id": "f38599eb-8ca8-4720-a5c5-59c99c82df42",
         "version": "1.0.0.0"
       }

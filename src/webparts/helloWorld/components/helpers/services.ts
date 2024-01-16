@@ -3,7 +3,7 @@ import { getSP } from '../../../../pnpjsConfig';
 import * as moment from 'moment';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { ISiteUser, ISiteUserInfo } from '@pnp/sp/site-users/types';
-import { IRequestTypes, Tag } from '../interfaces/interfaces';
+import { IRequestTypes, ITag } from '../interfaces/interfaces';
   
   class Services {
 
@@ -19,7 +19,17 @@ import { IRequestTypes, Tag } from '../interfaces/interfaces';
       }
     }
 
-    public async fetchTagsById(tag:Tag):Promise<any>{
+    public colorCode = (status: string):string=>{
+      switch (status) {
+          case ('New'): return "#F2F8FD"
+          case ('In Progress'): return "#F7F7F8"
+          case ('Accepted'): return "#F4F9F4"
+          case ("Rejected"): return "#FDF5F3"
+      }
+      return "white"
+  }
+
+    public async fetchTagsById(tag:ITag):Promise<any>{
       await this._sp.termStore.searchTerm({
       label: tag.Label,
       setId: "dc544f14-4bee-4bef-9ce6-b36622cb704b",
@@ -27,8 +37,8 @@ import { IRequestTypes, Tag } from '../interfaces/interfaces';
     return tag;
   }
 
-  protected tagsFormater(tags:Tag[]):string{
-    const tagsString = tags.map((tag:Tag):string => `${tag.labels[0].name}|${tag.id}`).join(";");
+  protected tagsFormater(tags:ITag[]):string{
+    const tagsString = tags.map((tag:ITag):string => `${tag.labels[0].name}|${tag.id}`).join(";");
     return tagsString;
   }
 
@@ -36,7 +46,7 @@ import { IRequestTypes, Tag } from '../interfaces/interfaces';
       if (dateString) {
         const date = moment(dateString);
         if (date.isValid()) {
-          return date.format('DD.MM.YYYY');
+          return date.format('MM/DD/YYYY');
         }
       }
       return 'N/A';

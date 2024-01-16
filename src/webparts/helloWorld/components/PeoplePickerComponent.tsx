@@ -8,9 +8,10 @@ interface PeoplePickerComponentProps {
     onChange: (items: IPersonaProps[]) => void;
     userIsManager?: boolean;
     AsignedManagerId?:number;
+    disabled?:boolean;
   }
 
-const PeoplePickerComponent: React.FC<PeoplePickerComponentProps> = ({context, onChange, userIsManager, AsignedManagerId}) => {
+const PeoplePickerComponent: React.FC<PeoplePickerComponentProps> = ({context, onChange, userIsManager, AsignedManagerId, disabled}) => {
   const [managers, setManagers] = React.useState<IPersonaProps[]>([]);
   const [selectedItems, setSelectedItems] = React.useState<IPersonaProps[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
@@ -68,7 +69,7 @@ const PeoplePickerComponent: React.FC<PeoplePickerComponentProps> = ({context, o
   return(
     <div>
       {!isLoading ? (<CompactPeoplePicker
-        disabled={!userIsManager}
+        disabled={!disabled}
         onResolveSuggestions={(filterText)=>onResolveSuggestions(filterText !== '' ? filterText : '', [])}
         onChange={onChange}
         defaultSelectedItems={selectedItems}

@@ -1,7 +1,7 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { ITaxonomyLocalProperty } from "@pnp/sp/taxonomy";
 // import { ITermInfo } from "@pnp/spfx-controls-react/node_modules/@pnp/sp/taxonomy/";
-export interface Tag {
+export interface ITag {
   Label: string;
   TermGuid: string;
   id: string;
@@ -50,7 +50,7 @@ export interface IHelloWorldProps {
 
   export interface ModalProps {
     requestTypes: Array<IRequestTypes>
-    mode: 'create' | 'update';
+    mode: string;
     initialData?: IMemberForm | undefined;
     onSubmit: (formData: IMemberForm) => void;
     isModalOpen: boolean;
@@ -67,7 +67,7 @@ export interface IHelloWorldProps {
 
   export interface IMemberFormFc{
     requestTypes: Array<IRequestTypes>;
-    mode?: 'create' | 'update';
+    mode?: string;
     initialData?: IMemberForm | undefined;
     onSubmit: (formData: IMemberForm) => void;
     context: any;

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { IMemberForm, IRequestList, IRequestTypes, Tag} from './interfaces/interfaces';
+import { IMemberForm, IRequestList, IRequestTypes, ITag} from './interfaces/interfaces';
 import ModalComponent from './ModalComponent';
 import 'office-ui-fabric-core/dist/css/fabric.min.css';
 import { PrimaryButton } from '@fluentui/react';
@@ -22,10 +22,9 @@ const RequestList: React.FC<IRequestList> = (props) => {
   const [requestTypes, setRequestTypes] = React.useState<IRequestTypes[]>([]);
   const [isUserManager, setIsUserManager] = useState<boolean>(false);
   const [sortConfig, setSortConfig] = useState<{ column: string; direction: 'asc' | 'desc' }>({ column: 'Title', direction: 'asc' });
-  const [filteredRequestItems, setFilteredRequestItems] = useState<IRequestList[]>([]);
+  const [filteredRequestItems, setFilteredRequestItems] = useState<IRequestList[]>([]);  
   const formDataManager = new FormDataManager(props.context);
   const services = new Services(props.context);
-
 
 
   const storeSiteUsers = async (): Promise<{ [key: number]: string }|undefined> => {
@@ -188,7 +187,7 @@ const searchFormSubmit = (searchArray: IMemberForm): void => {
       } else if (key === 'Tags' && value.length>0){
         const labelNames = value.map((term:ITermInfo) => (term.labels.length > 0 ? term.labels[0].name : ''));
         filteredItems = filteredItems.filter((item) => {
-          const itemLabelNames = item.Tags.map((tag: Tag) => tag.Label)
+          const itemLabelNames = item.Tags.map((tag: ITag) => tag.Label)
           return labelNames.every((labelName:string) => itemLabelNames.includes(labelName));
         });
       } else if (key === 'RequestArea' && value !== ''){
@@ -198,6 +197,16 @@ const searchFormSubmit = (searchArray: IMemberForm): void => {
   }
 
   setFilteredRequestItems(filteredItems);
+}
+
+const mode = (selectedItem:IRequestList|undefined):string => {
+  if(selectedItem&&selectedItem.Status === "New"){
+    return "update"
+  }
+  if(selectedItem && selectedItem.Status === ""){
+    return "create"
+  }
+  return "view"
 }
 
   return (
@@ -224,7 +233,7 @@ const searchFormSubmit = (searchArray: IMemberForm): void => {
           <ModalComponent
             requestTypes={requestTypes}
             initialData={selectedItem}
-            mode={selectedItem ? "update" : "create"}
+            mode={mode(selectedItem)}
             onSubmit={handleSave}
             isModalOpen={true}
             hideModal={handleModalClose}

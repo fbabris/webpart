@@ -1,9 +1,10 @@
-import { Button, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow } from "@fluentui/react-components";
-import { IListTable, Tag } from "./interfaces/interfaces";
+import { Button, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Tag } from "@fluentui/react-components";
+import { IListTable, ITag } from "./interfaces/interfaces";
 import * as React from 'react';
 import Services from "./helpers/Services";
 import { DeleteIcon, EditIcon } from "@fluentui/react-icons-mdl2";
 import 'office-ui-fabric-core/dist/css/fabric.min.css';
+
 
 const ListTable: React.FC<IListTable> = (props) =>{
 
@@ -20,12 +21,9 @@ const ListTable: React.FC<IListTable> = (props) =>{
 
     const columns = [
         { key: 'Title', fieldName: 'Title', className:gridClasses.regular},
-        // { key: 'Description', fieldName: 'Description', className:gridClasses.large1},
-        { key: 'DueDate', fieldName: 'DueDate', className:gridClasses.mid3},
-        // { key: 'ExecutionDate', fieldName: 'ExecutionDate', className:gridClasses.large1},
-        // { key: 'RequestType', fieldName: 'RequestType', className:gridClasses.large1},
-        { key: 'RequestArea', fieldName: 'RequestArea', className:gridClasses.large2},
-        { key: 'AsignedManager', fieldName: 'Asigned Manager', className:gridClasses.regular},
+        { key: 'DueDate', fieldName: 'Due Date', className:gridClasses.mid3},
+        { key: 'RequestArea', fieldName: 'Request Area', className:gridClasses.large2},
+        { key: 'AsignedManager', fieldName: 'Assigned Manager', className:gridClasses.regular},
         { key: 'Tags', fieldName: 'Tags', className:gridClasses.large2},
         { key: 'Status', fieldName: 'Status', className:gridClasses.small2},
         { key: 'EditDelete', fieldName: '', className:gridClasses.small1},
@@ -37,9 +35,10 @@ const ListTable: React.FC<IListTable> = (props) =>{
         <Table sortable aria-label="Table with sort" >
 
         <TableHeader>
-            <TableRow className="ms-Grid-row">
+            <TableRow className="ms-Grid-row" style={{backgroundColor:"#F7F7F7"}}>
             {columns.map((column) => (
-                <TableHeaderCell 
+                <TableHeaderCell
+                style={{ fontWeight:"bold" }} 
                 key={column.key}
                 className={column.className}
                 onClick={() => props.handleSort(column.fieldName)}
@@ -56,17 +55,14 @@ const ListTable: React.FC<IListTable> = (props) =>{
 
         <TableBody>
             {(props.filteredRequestItems).map((item) => (
-            <TableRow className="ms-Grid-row" key={item.ID} onClick={() => props.handleUpdate(item)}>
+            <TableRow className="ms-Grid-row" key={item.ID} onClick={() => props.handleUpdate(item)} style={{backgroundColor:services.colorCode(item.Status)}}>
                 <TableCell className={gridClasses.regular} >{item.Title}</TableCell>
-                {/* <TableCell className={gridClasses.hid} >{item.Description}</TableCell> */}
                 <TableCell className={gridClasses.mid3} >{services.formattedDate(item.DueDate)}</TableCell>
-                {/* <TableCell className={gridClasses.large1}>{formattedDate(item.ExecutionDate)}</TableCell> */}
-                {/* <TableCell className={gridClasses.hid}>{item.RequestType}</TableCell> */}
                 <TableCell className={gridClasses.large2}>{item.RequestArea}</TableCell>
                 <TableCell className={gridClasses.regular}>{props.usersArray[item.AsignedManagerId]}</TableCell>
                 <TableCell className={gridClasses.large2}>
-                {item.Tags.map((tag:Tag, index:number) => (
-                <span key={index}>{tag.Label} </span>
+                {item.Tags.map((tag:ITag, index:number) => (
+                <Tag key={index} size="extra-small" shape="circular" appearance="brand">{tag.Label} </Tag>
                 ))}
                 </TableCell>
                 <TableCell className={gridClasses.small2}>{item.Status}</TableCell>
