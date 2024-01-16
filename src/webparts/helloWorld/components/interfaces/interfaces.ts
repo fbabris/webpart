@@ -90,3 +90,12 @@ export interface IHelloWorldProps {
     DueDateEnd: Date | undefined;
     ExecutionDateEnd: Date | undefined;
   }
+
+  export interface IListTable {
+    filteredRequestItems: Array <IRequestList>;
+    handleSort: (column: string)=>void;
+    sortConfig: {column: string, direction: 'asc' | 'desc'};
+    handleUpdate: (item: IRequestList)=>void;
+    usersArray: { [key: number]: string };
+    handleDelete: (item: IRequestList)=>void;
+  }

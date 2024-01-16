@@ -2,16 +2,6 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { IMemberForm, IRequestList, IRequestTypes, Tag} from './interfaces/interfaces';
 import ModalComponent from './ModalComponent';
-import {
-  TableBody,
-  TableCell,
-  TableRow,
-  Table,
-  TableHeader,
-  TableHeaderCell,
-  Button,
-} from "@fluentui/react-components";
-import { DeleteIcon, EditIcon } from '@fluentui/react-icons-mdl2';
 import 'office-ui-fabric-core/dist/css/fabric.min.css';
 import { PrimaryButton } from '@fluentui/react';
 import FormDataManager from './helpers/FormDataManager';
@@ -19,6 +9,7 @@ import Services from './helpers/Services';
 import SearchForm from './SearchForm';
 import * as moment from 'moment';
 import { ITermInfo } from "@pnp/spfx-controls-react/node_modules/@pnp/sp/taxonomy/";
+import ListTable from './ListTable';
 
 
 
@@ -148,31 +139,6 @@ const handleSort = (column: string):void => {
   setFilteredRequestItems(sortedData);
 }
 
-
-
-const gridClasses = {
-  regular: 'ms-Grid-col ms-sm4 ms-md2 ms-lg2',
-  large2: 'ms-Grid-col hiddenMdDown ms-lg2',
-  large1: 'ms-Grid-col hiddenMdDown ms-lg1',
-  small2: 'ms-Grid-col ms-sm2 ms-lg1', 
-  small1: 'ms-Grid-col ms-sm1',
-  mid3: 'ms-Grid-col hiddenSm ms-md3 ms-lg2',
-  hid: 'ms-Grid-col ms-sm12 hiddenXxlDown'
-}
-
-const columns = [
-  { key: 'Title', fieldName: 'Title', className:gridClasses.regular},
-  // { key: 'Description', fieldName: 'Description', className:gridClasses.hid},
-  { key: 'DueDate', fieldName: 'DueDate', className:gridClasses.mid3},
-  // { key: 'ExecutionDate', fieldName: 'ExecutionDate', className:gridClasses.large1},
-  // { key: 'RequestType', fieldName: 'RequestType', className:gridClasses.hid},
-  { key: 'RequestArea', fieldName: 'RequestArea', className:gridClasses.large2},
-  { key: 'AsignedManager', fieldName: 'Asigned Manager', className:gridClasses.regular},
-  { key: 'Tags', fieldName: 'Tags', className:gridClasses.large2},
-  { key: 'Status', fieldName: 'Status', className:gridClasses.small2},
-  { key: 'EditDelete', fieldName: '', className:gridClasses.small1},
-];
-
 const searchFormSubmit = (searchArray: IMemberForm): void => {
   let filteredItems = [...requestItems];
 
@@ -237,83 +203,38 @@ const searchFormSubmit = (searchArray: IMemberForm): void => {
   return (
 
     <>
-    <SearchForm 
-      requestTypes={requestTypes}
-      context={props.context}
-      onSubmit={searchFormSubmit}
-    />
-    <div className="ms-Grid">
-      <h2>Request List:</h2>
-        <Table sortable aria-label="Table with sort" >
-
-        <TableHeader>
-          <TableRow className="ms-Grid-row">
-            {columns.map((column) => (
-              <TableHeaderCell 
-              key={column.key}
-              className={column.className}
-              onClick={() => handleSort(column.fieldName)}
-              aria-sort={sortConfig.column === column.fieldName ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
-            >
-              {column.fieldName}
-                {sortConfig.column === column.fieldName && (
-                  <span className={`ms-Icon ${sortConfig.direction === 'asc' ? 'ms-Icon--SortUp' : 'ms-Icon--SortDown'}`} />
-                )}
-              </TableHeaderCell>
-            ))}
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {(filteredRequestItems).map((item) => (
-            <TableRow className="ms-Grid-row" key={item.ID} onClick={() => handleUpdate(item)}>
-              <TableCell className={gridClasses.regular} >{item.Title}</TableCell>
-              {/* <TableCell className={gridClasses.hid} >{item.Description}</TableCell> */}
-              <TableCell className={gridClasses.mid3} >{services.formattedDate(item.DueDate)}</TableCell>
-              {/* <TableCell className={gridClasses.large1}>{formattedDate(item.ExecutionDate)}</TableCell> */}
-              {/* <TableCell className={gridClasses.hid}>{item.RequestType}</TableCell> */}
-              <TableCell className={gridClasses.large2}>{item.RequestArea}</TableCell>
-              <TableCell className={gridClasses.regular}>{usersArray[item.AsignedManagerId]}</TableCell>
-              <TableCell className={gridClasses.large2}>
-                {item.Tags.map((tag:Tag, index:number) => (
-                <span key={index}>{tag.Label} </span>
-              ))}
-              </TableCell>
-              <TableCell className={gridClasses.small2}>{item.Status}</TableCell>
-              {
-                item.Status === 'New' ? (
-                  <div className={gridClasses.small1}>
-                    <TableCell>
-                      <Button icon={<EditIcon />} onClick={() => handleUpdate(item)} />
-                    </TableCell>
-                    <TableCell>
-                      <Button icon={<DeleteIcon />} onClick={() => handleDelete(item)} />
-                    </TableCell>
-                  </div>
-                ) : null
-              }      
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <div className="ms-Grid-row center">          
-        {!(isUserManager) && (<PrimaryButton className="ms-Grid-col ms-sm12" onClick={handleOpenCreateModal}>Create a New Request</PrimaryButton>)}
-      </div>  
-      {modalVisible && (
-        <ModalComponent
-          requestTypes={requestTypes}
-          initialData={selectedItem}
-          mode={selectedItem ? "update" : "create"}
-          onSubmit={handleSave}
-          isModalOpen={true}
-          hideModal={handleModalClose}
-          context={props.context}
-          userIsManager={isUserManager}
-        />
-      )}
-    </div>
+      <SearchForm 
+        requestTypes={requestTypes}
+        context={props.context}
+        onSubmit={searchFormSubmit}
+      />
+      <ListTable
+        handleSort={handleSort}
+        filteredRequestItems={filteredRequestItems}
+        handleUpdate={handleUpdate}
+        handleDelete={handleDelete}
+        sortConfig={sortConfig}
+        usersArray={usersArray}
+      />
+      <div className='ms-Grid'>
+        <div className="ms-Grid-row center">          
+          {!(isUserManager) && (<PrimaryButton className="ms-Grid-col ms-sm12" onClick={handleOpenCreateModal}>Create a New Request</PrimaryButton>)}
+        </div>  
+        {modalVisible && (
+          <ModalComponent
+            requestTypes={requestTypes}
+            initialData={selectedItem}
+            mode={selectedItem ? "update" : "create"}
+            onSubmit={handleSave}
+            isModalOpen={true}
+            hideModal={handleModalClose}
+            context={props.context}
+            userIsManager={isUserManager}
+          />
+        )}
+      </div>
     </>
-    );
+  );
 };
 
 export default RequestList;
