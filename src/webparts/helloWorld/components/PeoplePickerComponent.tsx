@@ -69,7 +69,7 @@ const PeoplePickerComponent: React.FC<PeoplePickerComponentProps> = ({context, o
   return(
     <div>
       {!isLoading ? (<CompactPeoplePicker
-        disabled={!disabled}
+        disabled={disabled}
         onResolveSuggestions={(filterText)=>onResolveSuggestions(filterText !== '' ? filterText : '', [])}
         onChange={onChange}
         defaultSelectedItems={selectedItems}

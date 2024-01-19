@@ -129,8 +129,6 @@ const handleSort = (column: string):void => {
 
     if (typeof aValue === 'string' && typeof bValue === 'string') {
       return newDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-    } else if (aValue instanceof Date && bValue instanceof Date) {
-      return newDirection === 'asc' ? aValue.getTime() - bValue.getTime() : bValue.getTime() - aValue.getTime();
     }
 
     return 0;
@@ -203,7 +201,7 @@ const mode = (selectedItem:IRequestList|undefined):string => {
   if(selectedItem&&selectedItem.Status === "New"){
     return "update"
   }
-  if(selectedItem && selectedItem.Status === ""){
+  if(!selectedItem || !selectedItem.Status){
     return "create"
   }
   return "view"

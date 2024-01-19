@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Modal, IconButton, mergeStyleSets, FontWeights } from '@fluentui/react/lib';
+import { Modal, IconButton, mergeStyleSets, FontWeights, addDays } from '@fluentui/react/lib';
 import MemberForm from './MemberForm';
 import FormDataManager from './helpers/FormDataManager';
 import { IMemberForm, IUpdateHandler, ModalProps } from './interfaces/interfaces';
@@ -13,7 +13,7 @@ const ModalComponent: React.FC<ModalProps> = (props: ModalProps) => {
     Description: '',
     RequestTypeId: 0,
     RequestArea: '',
-    DueDate: undefined,
+    DueDate: addDays(new Date, 3),
     ExecutionDate: undefined,
     Tags: [],
     Status:'', 

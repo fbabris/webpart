@@ -25,7 +25,7 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
 
     const [hasTags, setHasTags] = React.useState<boolean>(false);
     const [isLoading, setIsLoading] = React.useState(true);
-    const [isPeoplePickerDisabled, setIsPeoplePickerDisabled] = React.useState<boolean>(true);
+    const [isPeoplePickerDisabled, setIsPeoplePickerDisabled] = React.useState<boolean>(false);
     const [isManagerAssigned, setIsManagerAssigned] = React.useState<boolean>(true);
     const services = new Services;
 
@@ -194,13 +194,14 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>):Promise<void> => {
     e.preventDefault();
-    if(formData.AsignedManagerId){await onSubmit(formData)}
+    if(formData.AsignedManagerId || !userIsManager){await onSubmit(formData)}
     setIsManagerAssigned(false);
   }
 
   const handlePeoplePickerDisabled = ():void => {
     if(userIsManager){
       setIsPeoplePickerDisabled(mode==="view");
+      return;
     }
     setIsPeoplePickerDisabled(true);
   }
@@ -231,6 +232,7 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
         <Dropdown
         id="RequestType"
         className={styles.root}
+        required={(mode==="create")||(!userIsManager&&mode==="update")}
         disabled={mode==="view"}
         onChange={(e, option) => handleRequestTypeChange( e, option)}
         placeholder="Select an option"
@@ -253,7 +255,6 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
           showWeekNumbers={true}
           firstWeekOfYear={1}
           showMonthPickerAsOverlay={true}
-          showGoToToday={true}
         />
         {!isLoading && (
           <ModernTaxonomyPicker 
@@ -267,7 +268,7 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
             onChange={onTaxPickerChange}
           />
         )}
-        <div>
+        {mode === "view" || (mode === "update" && userIsManager) && <div>
           <Label>Assigned Manager</Label>
           <PeoplePickerComponent 
             context={context} 
@@ -281,9 +282,9 @@ const MemberForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
           >
             Request Manager must be assigned!
           </MessageBar>}
-        </div>
-        {mode !== 'create' && <TextField label="Status" disabled name="Status" value={formData.Status}/>}
-        {mode !== 'create' && <TextField label="Execution Date" name="Title" value={services.formattedDate(formData.ExecutionDate)} disabled/>}
+        </div>}
+        {mode === 'view' && <TextField label="Status" disabled name="Status" value={formData.Status}/>}
+        {mode === 'view' && <TextField label="Execution Date" name="Title" value={services.formattedDate(formData.ExecutionDate)} disabled/>}
       {(mode !== "view") && <div style={containerStyle}>
         <PrimaryButton type="submit">{mode === 'create' ? 'Create' : 'Update'}</PrimaryButton>
         {userIsManager && (

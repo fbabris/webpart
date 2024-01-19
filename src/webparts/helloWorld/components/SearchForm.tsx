@@ -122,7 +122,7 @@ const SearchForm: React.FC<IMemberFormFc> = ({requestTypes, mode, initialData, o
                         onChange={(manager)=>{handleManagerChange("AsignedManagerId", manager)}} 
                         AsignedManagerId={formData.AsignedManagerId}
                         userIsManager={true}
-                        disabled = {true}
+                        disabled = {false}
                     />
                 </div>
                 
